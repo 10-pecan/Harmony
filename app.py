@@ -8,7 +8,7 @@ import altair as alt
 # --- 1. 페이지 설정 ---
 st.set_page_config(page_title="Math Carol", page_icon="❄️", layout="wide")
 
-# --- 2. 🎨 White Luxury Design (풍선 제거됨) ---
+# --- 2. 🎨 White Luxury Design ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700;900&family=Playfair+Display:ital,wght@1,700&display=swap');
@@ -21,7 +21,7 @@ st.markdown("""
         font-family: 'Noto Sans KR', sans-serif !important;
     }
 
-    /* [눈 내리는 효과 - 은은하게] */
+    /* [눈 내리는 효과] */
     .snowflake {
         position: fixed; top: -10px; z-index: 0;
         color: #BCCCDC; font-size: 1.2em; opacity: 0.7;
@@ -36,7 +36,7 @@ st.markdown("""
     .holiday-title {
         font-family: 'Playfair Display', serif;
         font-size: 4.5rem; font-weight: 900; font-style: italic;
-        text-align: center; color: #C92A2A; /* 고급스러운 레드 */
+        text-align: center; color: #C92A2A; 
         margin-top: 20px; letter-spacing: -1px;
         text-shadow: 2px 2px 0px #FFF, 5px 5px 0px #E9ECEF;
     }
@@ -53,18 +53,19 @@ st.markdown("""
         padding: 30px;
         border: 1px solid #F1F3F5;
         margin-bottom: 20px;
+        height: 100%;
     }
 
-    /* [수학 뱃지 스타일] */
+    /* [수학 뱃지] */
     .badge {
         display: inline-block; padding: 5px 12px;
         border-radius: 20px; font-weight: 700; font-size: 0.8rem;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
-    .badge-1 { background: #FFC9C9; color: #C92A2A; } /* 중1 레드 */
-    .badge-2 { background: #B2F2BB; color: #2B8A3E; } /* 중2 그린 */
-    .badge-3 { background: #FFEC99; color: #E67700; } /* 중3 골드 */
-    .badge-c { background: #E5DBFF; color: #5F3DC4; } /* 커스텀 */
+    .badge-1 { background: #FFC9C9; color: #C92A2A; } 
+    .badge-2 { background: #B2F2BB; color: #2B8A3E; } 
+    .badge-3 { background: #FFEC99; color: #E67700; } 
+    .badge-c { background: #E5DBFF; color: #5F3DC4; } 
 
     /* [재생 버튼] */
     .stButton>button {
@@ -87,6 +88,11 @@ st.markdown("""
         border: 1px solid #C92A2A !important; font-weight: bold !important;
         box-shadow: 0 5px 15px rgba(201, 42, 42, 0.1) !important;
     }
+    
+    /* [설명 텍스트] HTML 태그 적용을 위해 스타일 지정 */
+    .desc-text {
+        font-size: 1rem; line-height: 1.6; color: #495057;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -96,10 +102,13 @@ def create_snow():
     st.markdown(snow_html, unsafe_allow_html=True)
 create_snow()
 
-# --- 4. 오디오 엔진 (Rhythmic Carol) ---
+# --- 4. 오디오 엔진 (길이 보정 기능 추가) ---
+
 def generate_wave(freq, duration, type="bell"):
     sr = 44100
-    t = np.linspace(0, duration, int(sr * duration), False)
+    num_samples = int(sr * duration)
+    t = np.linspace(0, duration, num_samples, False)
+    
     if type == "bell": 
         return 0.6*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*2*t)*np.exp(-2*t) + 0.1*np.sin(2*np.pi*freq*4*t)
     elif type == "strings":
@@ -107,7 +116,13 @@ def generate_wave(freq, duration, type="bell"):
     elif type == "sleigh":
         noise = np.random.uniform(-1, 1, len(t))
         return 0.1 * noise * np.sin(2*np.pi*2000*t) * np.exp(-10*t)
-    return np.zeros_like(t)
+    return np.zeros(num_samples)
+
+# [FIX] 길이 강제 맞춤 함수 (핵심 에러 해결)
+def match_len(wave, length):
+    if len(wave) == length: return wave
+    elif len(wave) > length: return wave[:length]
+    else: return np.pad(wave, (0, length - len(wave)), 'constant')
 
 def apply_envelope(wave, duration, type="short"):
     length = len(wave)
@@ -118,7 +133,8 @@ def apply_envelope(wave, duration, type="short"):
         if sus < 0: sus = 0
         env = np.concatenate([np.linspace(0,1,att), np.full(sus,1.0), np.linspace(1,0,rel)])
     
-    if len(env) != length: env = np.resize(env, length)
+    # Envelope 길이도 Wave와 맞춤
+    env = match_len(env, length)
     return wave * env
 
 def create_carol_phrase(digit, bpm):
@@ -127,7 +143,6 @@ def create_carol_phrase(digit, bpm):
     idx = int(digit) if digit.isdigit() else 0
     base_freq = scale[idx % len(scale)]
     
-    # 리듬 패턴
     if idx % 2 == 0: 
         notes = [(base_freq, 0.75), (base_freq, 0.25), (base_freq*1.25, 1.0)]
     else: 
@@ -139,15 +154,23 @@ def create_carol_phrase(digit, bpm):
         w = generate_wave(f, dur, "bell")
         w = apply_envelope(w, dur, "short")
         melody_waves.append(w)
-    melody = np.concatenate(melody_waves)
-    total_len = len(melody)
     
-    # 화음 & 썰매벨
+    melody = np.concatenate(melody_waves)
+    total_len = len(melody) # 이 길이를 기준으로 모든 반주를 맞춤
+    
+    # 반주 생성 (길이 강제 고정)
     pad_freq = base_freq * 0.5
+    
+    # 1. Pad Wave
     pad = generate_wave(pad_freq, total_len/44100, "strings")
-    pad += generate_wave(pad_freq * 1.5, total_len/44100, "strings")
+    pad = match_len(pad, total_len) # 길이 맞춤
+    pad += match_len(generate_wave(pad_freq * 1.5, total_len/44100, "strings"), total_len)
     pad = apply_envelope(pad, total_len/44100, "long") * 0.3
-    sleigh = generate_wave(0, total_len/44100, "sleigh") * 0.4
+    
+    # 2. Sleigh Bell
+    sleigh = generate_wave(0, total_len/44100, "sleigh")
+    sleigh = match_len(sleigh, total_len) # 길이 맞춤
+    sleigh = sleigh * 0.4
     
     return melody + pad + sleigh
 
@@ -155,25 +178,27 @@ def compose_carol(nums, bpm):
     track = [create_carol_phrase(char, bpm) for char in nums if char.isdigit()]
     if not track: return None
     full = np.concatenate(track)
+    
     delay = int(44100 * 0.3)
     res = np.zeros(len(full) + delay)
     res[:len(full)] += full
     res[delay:] += full * 0.4
+    
     m = np.max(np.abs(res))
     return res / m * 0.95 if m > 0 else res
 
-# --- 5. UI Layout 및 로직 (핵심 수정) ---
-# [Fix] render_tab 함수로 각 탭의 내용을 독립적으로 생성
+# --- 5. UI Logic ---
 
 def render_tab_content(key_suffix, badge_class, badge_text, title, desc, default_nums, is_custom=False):
-    # 왼쪽: 설명 및 입력 / 오른쪽: 비주얼 및 재생
     c1, c2 = st.columns([1, 1], gap="large")
     
     with c1:
-        st.markdown(f'<div class="content-box" style="height:100%;">', unsafe_allow_html=True)
+        st.markdown(f'<div class="content-box">', unsafe_allow_html=True)
         st.markdown(f'<span class="badge {badge_class}">{badge_text}</span>', unsafe_allow_html=True)
         st.markdown(f"### {title}")
-        st.markdown(f"{desc}")
+        
+        # [FIX] HTML 태그가 그대로 보이는 문제 해결 (unsafe_allow_html=True)
+        st.markdown(f'<div class="desc-text">{desc}</div>', unsafe_allow_html=True)
         
         if is_custom:
             user_in = st.text_input("숫자 입력", placeholder="20251225", key=f"input_{key_suffix}")
@@ -187,7 +212,6 @@ def render_tab_content(key_suffix, badge_class, badge_text, title, desc, default
         st.markdown(f'<div class="content-box">', unsafe_allow_html=True)
         
         if current_nums:
-            # 트리 시각화
             digits = [int(d) for d in current_nums[:20] if d != '0']
             tree_data = []
             level, count = 1, 0
@@ -197,8 +221,6 @@ def render_tab_content(key_suffix, badge_class, badge_text, title, desc, default
                 if count >= level: level += 1; count = 0
             
             df = pd.DataFrame(tree_data)
-            
-            # 차트 색상: 탭에 따라 다르게
             color_scheme = 'reds' if '1' in key_suffix else 'greens' if '2' in key_suffix else 'oranges'
             if is_custom: color_scheme = 'purples'
 
@@ -209,22 +231,19 @@ def render_tab_content(key_suffix, badge_class, badge_text, title, desc, default
             ).properties(height=250).configure_view(strokeWidth=0)
             st.altair_chart(c, use_container_width=True)
             
-            # [재생 버튼] - 각 탭마다 고유한 key 부여
             if st.button(f"🔔 연주하기 ({title})", key=f"btn_{key_suffix}"):
                 with st.spinner("캐롤 생성 중..."):
                     audio = compose_carol(current_nums, bpm=110)
                     virtual_file = io.BytesIO()
                     write(virtual_file, 44100, (audio * 32767).astype(np.int16))
                     st.audio(virtual_file, format='audio/wav')
-                    # 풍선 효과 제거됨
         
         st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 메인 실행 ---
+# --- Main Page ---
 st.markdown('<div class="holiday-title">White Math Carol</div>', unsafe_allow_html=True)
 st.markdown('<div class="holiday-sub">중학교 수학 교육과정 × 크리스마스 멜로디</div>', unsafe_allow_html=True)
 
-# 탭 생성
 tab1, tab2, tab3, tab4 = st.tabs(["1학년 (도형)", "2학년 (수)", "3학년 (무리수)", "나만의 숫자"])
 
 with tab1:
@@ -244,7 +263,7 @@ with tab2:
         "t2", "badge-2", "중2 - 유리수와 순환소수", 
         "순환소수 (1/7)", 
         """
-        <b>0.142857 142857...</b><br>
+        <b>0.142857...</b><br>
         유리수 중에는 같은 숫자가 반복되는 순환소수가 있습니다.
         반복되는 리듬은 캐롤의 후렴구처럼 즐거운 패턴을 만듭니다.
         """,
@@ -277,5 +296,4 @@ with tab4:
         is_custom=True
     )
 
-# Footer
 st.markdown("<br><br><div style='text-align:center; color:#ADB5BD; font-size:0.8rem;'>Designed for Math Education</div>", unsafe_allow_html=True)
