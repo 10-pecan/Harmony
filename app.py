@@ -11,7 +11,7 @@ st.set_page_config(page_title="Math Carol Magic", page_icon="🎄", layout="wide
 # --- 2. 🎨 Christmas Magic Design (CSS) ---
 st.markdown("""
 <style>
-    /* [폰트 불러오기] 눈 쌓인 느낌의 폰트 추가 */
+    /* [폰트 불러오기] */
     @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Noto+Sans+KR:wght@300;500;700&display=swap');
     
     /* [전체 배경: 오로라 + 화이트 글래스] */
@@ -24,7 +24,7 @@ st.markdown("""
     
     .stApp::before {
         content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(255, 255, 255, 0.9); /* 더 밝은 화이트 레이어 */
+        background: rgba(255, 255, 255, 0.9);
         z-index: -1;
     }
 
@@ -32,17 +32,13 @@ st.markdown("""
     .snowflake { position: fixed; top: -10px; z-index: 99; color: #fff; text-shadow: 0 0 5px rgba(0,0,0,0.2); animation: fall linear infinite; }
     @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
 
-    /* [타이틀 디자인 - 크리스마스 분위기 UP!] */
+    /* [타이틀 디자인] */
     .main-title {
-        font-family: 'Mountains of Christmas', cursive; /* 크리스마스 폰트 */
+        font-family: 'Mountains of Christmas', cursive;
         font-size: 5rem; font-weight: 700;
-        text-align: center; color: #d35400; /* 따뜻한 오렌지 레드 */
+        text-align: center; color: #d35400;
         margin-top: 20px;
-        /* 눈 쌓인 듯한 텍스트 그림자 효과 */
-        text-shadow: 
-            3px 3px 0 #fff,
-            5px 5px 0 #c0392b,
-            7px 7px 5px rgba(0,0,0,0.3);
+        text-shadow: 3px 3px 0 #fff, 5px 5px 0 #c0392b, 7px 7px 5px rgba(0,0,0,0.3);
         letter-spacing: 2px;
     }
     .sub-title {
@@ -54,7 +50,7 @@ st.markdown("""
     .glass-card {
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 2px solid rgba(255, 255, 255, 0.8); /* 테두리 강조 */
+        border: 2px solid rgba(255, 255, 255, 0.8);
         border-radius: 24px; padding: 40px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         margin-bottom: 25px; transition: transform 0.3s ease;
@@ -72,10 +68,10 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3) !important;
     }
 
-    /* [재생 버튼 - 선물 상자 느낌] */
+    /* [재생 버튼] */
     .stButton>button {
         background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%) !important;
-        color: #fff !important; border: 3px solid #f1c40f !important; /* 금테 두름 */
+        color: #fff !important; border: 3px solid #f1c40f !important;
         height: 70px; border-radius: 20px;
         font-size: 1.5rem; font-weight: 800; width: 100%;
         box-shadow: 0 10px 25px rgba(192, 57, 43, 0.3); transition: all 0.3s;
@@ -105,49 +101,125 @@ def create_snow():
     st.markdown(snow_html, unsafe_allow_html=True)
 create_snow()
 
-# --- 3. 🎹 Audio Engine (동일하게 유지) ---
-# (오디오 엔진 코드는 이전과 동일하여 생략합니다. 실제 실행 시에는 포함되어야 합니다.)
+# --- 3. 🎹 Audio Engine (문법 오류 수정됨!) ---
+
 def generate_wave(freq, duration, type="bell"):
-    sr = 44100; num_samples = int(sr * duration); t = np.linspace(0, duration, num_samples, False)
-    if type == "bell": return 0.6*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*2*t)*np.exp(-2*t) + 0.1*np.sin(2*np.pi*freq*4*t)
-    elif type == "strings": return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*1.01*t) + 0.2*np.sin(2*np.pi*freq*0.5*t)
-    elif type == "choir": return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*0.998*t) + 0.3*np.sin(2*np.pi*freq*1.002*t)
-    elif type == "sleigh": noise = np.random.uniform(-1, 1, len(t)); return 0.1 * noise * np.sin(2*np.pi*3000*t) * np.exp(-15*t)
+    sr = 44100
+    num_samples = int(sr * duration)
+    t = np.linspace(0, duration, num_samples, False)
+    
+    if type == "bell": 
+        return 0.6*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*2*t)*np.exp(-2*t) + 0.1*np.sin(2*np.pi*freq*4*t)
+    elif type == "strings": 
+        return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*1.01*t) + 0.2*np.sin(2*np.pi*freq*0.5*t)
+    elif type == "choir": 
+        return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*0.998*t) + 0.3*np.sin(2*np.pi*freq*1.002*t)
+    elif type == "sleigh": 
+        noise = np.random.uniform(-1, 1, len(t))
+        return 0.1 * noise * np.sin(2*np.pi*3000*t) * np.exp(-15*t)
     return np.zeros(num_samples)
+
 def match_len(wave, length):
     if len(wave) == length: return wave
     elif len(wave) > length: return wave[:length]
     else: return np.pad(wave, (0, length - len(wave)), 'constant')
+
+# [FIXED] 문법 오류가 났던 부분을 정석대로 풀어서 작성
 def apply_envelope(wave, duration, type="short"):
     length = len(wave)
-    if type == "short": env = np.exp(np.linspace(0, -5, length))
-    else: att = int(length*0.2); rel = int(length*0.3); sus = length - att - rel; if sus < 0: sus = 0; env = np.concatenate([np.linspace(0,1,att), np.full(sus,1.0), np.linspace(1,0,rel)])
-    env = match_len(env, length); return wave * env
+    if type == "short": 
+        env = np.exp(np.linspace(0, -5, length))
+    else:
+        # 여기가 문제였음 -> 여러 줄로 나누어 해결
+        att = int(length * 0.2)
+        rel = int(length * 0.3)
+        sus = length - att - rel
+        
+        # 음수 방지
+        if sus < 0: 
+            sus = 0
+            
+        env = np.concatenate([
+            np.linspace(0, 1, att), 
+            np.full(sus, 1.0), 
+            np.linspace(1, 0, rel)
+        ])
+    
+    # Envelope 길이도 Wave와 맞춤
+    env = match_len(env, length)
+    return wave * env
+
 def compose_music(nums, bpm, style):
-    if style == "joyful": scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
-    elif style == "waltz": scale = [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99]
-    else: scale = [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]
-    beat_sec = 60.0 / bpm; full_track = []
+    # Scale 설정
+    if style == "joyful": 
+        scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
+    elif style == "waltz": 
+        scale = [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99]
+    else: 
+        scale = [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]
+        
+    beat_sec = 60.0 / bpm
+    full_track = []
+    
     for digit in nums:
         if not digit.isdigit(): continue
-        idx = int(digit); base_freq = scale[idx % len(scale)]
-        if style == "joyful": notes = [(base_freq, 0.75), (base_freq, 0.25), (base_freq*1.25, 1.0)] if idx % 2 == 0 else [(base_freq*1.5, 0.5), (base_freq*1.25, 0.5), (base_freq, 0.5), (base_freq*0.75, 0.5)]
-        elif style == "waltz": notes = [(base_freq, 1.0), (base_freq*1.25, 1.0), (base_freq*1.5, 1.0)]
-        else: notes = [(base_freq, 4.0)]
+        idx = int(digit)
+        base_freq = scale[idx % len(scale)]
+        
+        notes = []
+        if style == "joyful": 
+            if idx % 2 == 0: notes = [(base_freq, 0.75), (base_freq, 0.25), (base_freq*1.25, 1.0)]
+            else: notes = [(base_freq*1.5, 0.5), (base_freq*1.25, 0.5), (base_freq, 0.5), (base_freq*0.75, 0.5)]
+        elif style == "waltz": 
+            notes = [(base_freq, 1.0), (base_freq*1.25, 1.0), (base_freq*1.5, 1.0)]
+        else: 
+            notes = [(base_freq, 4.0)]
+            
         melody_waves = []
-        for f, d in notes: dur = d * beat_sec; w = generate_wave(f, dur, "bell" if style != "holy" else "choir"); w = apply_envelope(w, dur, "short" if style != "holy" else "long"); melody_waves.append(w)
-        melody = np.concatenate(melody_waves); total_len = len(melody)
-        pad_freq = base_freq * 0.5; pad = generate_wave(pad_freq, total_len/44100, "strings"); pad = match_len(pad, total_len); pad = apply_envelope(pad, total_len/44100, "long") * 0.3
-        sleigh = generate_wave(0, total_len/44100, "sleigh"); sleigh = match_len(sleigh, total_len) * 0.3 if style == "joyful" else np.zeros(total_len)
+        for f, d in notes:
+            dur = d * beat_sec
+            # 삼항연산자 대신 풀어서 작성 (가독성/안정성 확보)
+            inst = "bell"
+            if style == "holy": inst = "choir"
+            
+            env_type = "short"
+            if style == "holy": env_type = "long"
+            
+            w = generate_wave(f, dur, inst)
+            w = apply_envelope(w, dur, env_type)
+            melody_waves.append(w)
+            
+        melody = np.concatenate(melody_waves)
+        total_len = len(melody)
+        
+        # 반주 추가
+        pad_freq = base_freq * 0.5
+        pad = generate_wave(pad_freq, total_len/44100, "strings")
+        pad = match_len(pad, total_len)
+        pad = apply_envelope(pad, total_len/44100, "long") * 0.3
+        
+        sleigh = np.zeros(total_len)
+        if style == "joyful":
+            sleigh = generate_wave(0, total_len/44100, "sleigh")
+            sleigh = match_len(sleigh, total_len) * 0.3
+            
         full_track.append(melody + pad + sleigh)
+        
     if not full_track: return None
-    full = np.concatenate(full_track); delay = int(44100 * 0.4); res = np.zeros(len(full) + delay); res[:len(full)] += full; res[delay:] += full * 0.4
-    m = np.max(np.abs(res)); return res / m * 0.95 if m > 0 else res
+    
+    full = np.concatenate(full_track)
+    delay = int(44100 * 0.4)
+    res = np.zeros(len(full) + delay)
+    res[:len(full)] += full
+    res[delay:] += full * 0.4
+    
+    m = np.max(np.abs(res))
+    return res / m * 0.95 if m > 0 else res
 
-# --- 4. UI Logic ---
+# --- 4. UI Rendering ---
 
 def render_tab(key_prefix, badge_cls, badge_text, title, desc, default_nums, style):
-    c1, c2 = st.columns([1, 1.1], gap="large") # 오른쪽 컬럼을 약간 더 넓게
+    c1, c2 = st.columns([1, 1.1], gap="large")
     
     with c1:
         st.markdown(f"""
@@ -160,60 +232,45 @@ def render_tab(key_prefix, badge_cls, badge_text, title, desc, default_nums, sty
         
         final_nums = default_nums
         if key_prefix == "t4":
-            user_input = st.text_input("숫자를 입력하세요 (예: 20251225)", value="", key=f"in_{key_prefix}")
+            user_input = st.text_input("숫자를 입력하세요 (예: 1225)", value="", key=f"in_{key_prefix}")
             if user_input: final_nums = "".join(filter(str.isdigit, user_input))
 
     with c2:
         st.markdown('<div class="glass-card" style="text-align:center;">', unsafe_allow_html=True)
         
-        # [VISUAL UPGRADE] 입체적인 장식볼 트리
         if final_nums:
-            digits = [int(d) for d in final_nums[:35] if d != '0']
+            digits = [int(d) for d in final_nums[:30] if d != '0']
             tree_data = []
             max_width = 12
             height_scale = 1.8
             
             for i, d in enumerate(digits):
-                level = d * height_scale # 높은 음 = 위쪽
-                spread = (10 - d) * max_width / 10 # 낮은 음 = 넓게 퍼짐
+                level = d * height_scale
+                spread = (10 - d) * max_width / 10 
                 pos = spread * (1 if i % 2 == 0 else -1) * np.random.uniform(0.4, 1.0)
-                # [NEW] 크기(Size)를 음계(Note)에 비례하게 설정
-                size = d * 80 + 200 # 최소 200, 최대 1000 정도
+                size = d * 80 + 200 
                 tree_data.append({'Level': level, 'Pos': pos, 'Note': d, 'Size': size})
             
             df = pd.DataFrame(tree_data)
-            
             color_map = {'t1': 'reds', 't2': 'greens', 't3': 'oranges', 't4': 'purples'}
             
-            # [레이어링을 통한 입체 효과]
-            # 1. 기본 원 (불투명)
+            # 레이어링을 통한 입체 효과 차트
             base = alt.Chart(df).mark_circle(opacity=0.8).encode(
                 x=alt.X('Pos', axis=None), y=alt.Y('Level', axis=None, scale=alt.Scale(domain=[0, 13*height_scale])),
-                size=alt.Size('Size', legend=None), # 크기 적용
+                size=alt.Size('Size', legend=None),
                 color=alt.Color('Note', scale=alt.Scale(scheme=color_map[key_prefix]), legend=None),
                 tooltip=['Note']
             )
-            
-            # 2. 빛 번짐 효과 (더 크고 반투명한 원)
             glow = alt.Chart(df).mark_circle(opacity=0.3).encode(
                 x=alt.X('Pos', axis=None), y=alt.Y('Level', axis=None),
-                size=alt.Size('Size', legend=None, scale=alt.Scale(range=[400, 1500])), # 더 크게
+                size=alt.Size('Size', legend=None, scale=alt.Scale(range=[400, 1500])),
                 color=alt.Color('Note', scale=alt.Scale(scheme=color_map[key_prefix]), legend=None)
             )
-            
-            # 3. 하이라이트 (중심부 밝은 빛)
-            highlight = alt.Chart(df).mark_circle(opacity=0.6, color='white').encode(
-                x=alt.X('Pos', axis=None), y=alt.Y('Level', axis=None),
-                size=alt.Size('Size', legend=None, scale=alt.Scale(range=[50, 300])) # 작게
-            )
-            
-            # 레이어 결합
-            chart = alt.layer(glow, base, highlight).properties(height=350).configure_view(strokeWidth=0)
+            chart = alt.layer(glow, base).properties(height=350).configure_view(strokeWidth=0)
             
             st.altair_chart(chart, use_container_width=True)
             st.caption("▲ 음계의 높낮이에 따라 빛나는 크리스마스 장식볼 트리")
 
-        # 재생 버튼
         if st.button(f"🔔 캐롤 재생 (Play)", key=f"btn_{key_prefix}"):
             with st.spinner("캐롤 편곡 중..."):
                 bpm = 120 if style == "joyful" else 100 if style == "waltz" else 80
