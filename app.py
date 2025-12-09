@@ -2,100 +2,105 @@ import streamlit as st
 import numpy as np
 from scipy.io.wavfile import write
 import io
+import time
 
-# --- 1. 페이지 설정 (와이드 모드) ---
-st.set_page_config(page_title="Harmonia: Midnight", page_icon="🎹", layout="wide")
+# --- 1. 페이지 설정 (모바일 앱 느낌을 위해 Centered 추천) ---
+st.set_page_config(page_title="Mathgram", page_icon="🎵", layout="centered")
 
-# --- 2. 고급 스타일링 (CSS 주입) ---
-# 구글 폰트(Cinzel: 고전적 느낌) 불러오기 및 전체 테마 적용
+# --- 2. 힙한 SNS 스타일링 (CSS) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400&display=swap');
-
-    /* 전체 배경 그라데이션 (Midnight Theme) */
+    /* 전체 폰트 및 배경 (다크 모드 베이스) */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700&display=swap');
+    
     .stApp {
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        color: #e0e0e0;
-    }
-    
-    /* 타이틀 폰트 스타일 */
-    h1 {
-        font-family: 'Cinzel', serif;
-        font-size: 3.5rem !important;
-        background: -webkit-linear-gradient(#eee, #999);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0px;
-    }
-    
-    /* 서브 타이틀 */
-    .subtitle {
-        font-family: 'Lato', sans-serif;
-        text-align: center;
-        font-size: 1.2rem;
-        color: #a8a8b3;
-        margin-bottom: 50px;
+        background-color: #000000;
+        color: #ffffff;
+        font-family: 'Noto Sans KR', sans-serif;
     }
 
-    /* 버튼 스타일 (Glassmorphism) */
-    .stButton>button {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 30px;
-        height: 60px;
-        font-size: 18px;
-        font-family: 'Cinzel', serif;
-        transition: all 0.3s;
+    /* 인스타 프로필 느낌의 헤더 */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .profile-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        padding: 2px;
+        margin-right: 15px;
+    }
+    .profile-img-inner {
         width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+    }
+    .profile-name {
+        font-weight: 700;
+        font-size: 18px;
+    }
+    .profile-loc {
+        font-size: 12px;
+        color: #888;
+    }
+
+    /* 그라데이션 버튼 (좋아요/재생) */
+    .stButton>button {
+        background: transparent;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 8px;
+        transition: 0.3s;
     }
     .stButton>button:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: #fff;
-        transform: scale(1.02);
+        border-color: #e1306c;
+        color: #e1306c;
     }
     
-    /* 입력창 및 슬라이더 스타일 */
+    /* 입력창 둥글게 */
     .stTextInput>div>div>input {
-        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        background-color: #121212;
         color: white;
-        border: 1px solid #444;
-        text-align: center;
+        border: 1px solid #333;
     }
     
-    /* 풋터 숨김 */
-    footer {visibility: hidden;}
-    
+    /* 앨범 커버 같은 차트 영역 */
+    .cover-art {
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        border: 1px solid #222;
+        box-shadow: 0 4px 15px rgba(220, 39, 67, 0.2);
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (사운드 업그레이드) ---
+# --- 3. 오디오 엔진 (감성 사운드) ---
 def generate_rich_tone(frequency, duration, sample_rate=44100):
     t = np.linspace(0, duration, int(sample_rate * duration), False)
-    
-    # [사운드 디자인] 기본음 + 배음(Harmonics)을 섞어 풍성하게 만듦
-    # Fundamental (기본음)
+    # 몽환적인 일렉트릭 피아노 톤
     tone = 0.5 * np.sin(2 * np.pi * frequency * t)
-    # 2nd Harmonic (한 옥타브 위) - 은은하게
-    tone += 0.2 * np.sin(2 * np.pi * (frequency * 2) * t)
-    # 3rd Harmonic (완전 5도 위) - 약간의 색채
-    tone += 0.1 * np.sin(2 * np.pi * (frequency * 3) * t)
+    tone += 0.3 * np.sin(2 * np.pi * (frequency * 2) * t) * np.exp(-2 * t) # 반짝이는 느낌
+    tone += 0.1 * np.sin(2 * np.pi * (frequency * 0.5) * t) # 베이스
     
-    # Envelope (ADSR 중 Release 구현) - 소리가 뚝 끊기지 않고 부드럽게 사라짐
-    decay = np.exp(-3 * t) # 감쇠 곡선
-    tone = tone * decay
-    
-    return tone
+    decay = np.exp(-4 * t) 
+    return tone * decay
 
 def numbers_to_melody(number_str, speed, octave):
-    # 피타고라스 음계 기반 주파수 매핑
     base_freqs = {
         '1': 261.63, '2': 293.66, '3': 329.63, '4': 349.23,
         '5': 392.00, '6': 440.00, '7': 493.88, '8': 523.25, 
         '9': 587.33, '0': 0
     }
-    
     melody = []
     duration = 1.0 / speed 
     
@@ -103,94 +108,136 @@ def numbers_to_melody(number_str, speed, octave):
         if char in base_freqs:
             freq = base_freqs[char]
             if freq > 0:
-                # 옥타브 적용
                 freq = freq * (2 ** (octave - 4))
                 tone = generate_rich_tone(freq, duration)
             else:
-                # 쉼표 (0일 때)
                 tone = np.zeros(int(44100 * duration))
-            
             melody.append(tone)
             
     if not melody: return None
     return np.concatenate(melody)
 
-# --- 4. 메인 UI 구성 ---
+# --- 4. 메인 UI (SNS 피드 스타일) ---
 
-# 헤더 영역
-st.markdown("<h1>HARMONIA</h1>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Where Mathematics Meets Melody</div>", unsafe_allow_html=True)
+# [상단 프로필]
+st.markdown("""
+<div class="profile-header">
+    <div class="profile-img">
+        <div class="profile-img-inner">🎹</div>
+    </div>
+    <div>
+        <div class="profile-name">Math_DJ_Official</div>
+        <div class="profile-loc">Pythagoras Studio • Seoul</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-# 레이아웃 분할 (3단 구성으로 중앙 집중)
-c1, c2, c3 = st.columns([1, 2, 1])
+# [입력 및 설정]
+tab_feed, tab_new = st.tabs(["🔥 핫한 숫자들", "➕ 나만의 곡 만들기"])
 
-with c2:
-    # 탭 메뉴
-    tab1, tab2 = st.tabs(["✨ PRESETS", "🎹 CUSTOM"])
+target_nums = ""
+hashtags = ""
+
+with tab_feed:
+    st.caption("지금 인기 있는 수학적 선율")
+    feed_pick = st.selectbox("재생 목록 선택", 
+                            ["π (파이) - 영원히 반복되지 않는 노래", 
+                             "φ (황금비) - 가장 완벽한 비율의 소리", 
+                             "e (자연상수) - 성장의 멜로디"],
+                            label_visibility="collapsed")
     
-    num_input = ""
-    
-    with tab1:
-        preset = st.selectbox("수학적 상수 선택", 
-                             ["Circle Constant (π)", "Euler's Number (e)", "Golden Ratio (φ)"],
-                             label_visibility="collapsed")
+    if "π" in feed_pick:
+        target_nums = "314159265358979323846264338327950288419716939937510"
+        hashtags = "#원주율 #끝이없는 #미스테리 #3.14"
+    elif "φ" in feed_pick:
+        target_nums = "161803398874989484820458683436563811772030917980576"
+        hashtags = "#황금비 #피보나치 #자연의소리 #Perfect"
+    else:
+        target_nums = "271828182845904523536028747135266249775724709369995"
+        hashtags = "#자연상수 #성장 #미적분 #감성"
+
+with tab_new:
+    st.caption("숫자를 입력하면 음악이 됩니다.")
+    user_val = st.text_input("숫자 입력 (예: 생일, 기념일)", placeholder="예: 19951225")
+    if user_val:
+        target_nums = ''.join(filter(str.isdigit, user_val))
+        hashtags = "#나만의노래 #CustomTrack #수학갬성"
+
+# [메인 비주얼 영역]
+st.markdown("---")
+
+if target_nums:
+    # 앨범 커버 (차트)
+    with st.container():
+        st.caption("Now Playing 🎧")
         
-        if "π" in preset:
-            num_input = "314159265358979323846264338327950288419716939937510"
-            desc = "원주율(Pi): 원의 둘레와 지름의 비율. 무한하고 반복되지 않는 신비로운 수."
-        elif "e" in preset:
-            num_input = "271828182845904523536028747135266249775724709369995"
-            desc = "자연상수(e): 성장의 한계와 연속 복리를 설명하는 아름다운 수."
-        else:
-            num_input = "161803398874989484820458683436563811772030917980576"
-            desc = "황금비(Phi): 자연계와 예술에서 발견되는 가장 완벽한 비율."
+        # 차트 데이터 생성 (비주얼라이저 느낌)
+        vis_data = [int(d) for d in target_nums[:30] if d != '0']
+        
+        # 앨범 커버 스타일로 차트 표시
+        st.area_chart(vis_data, height=200, color="#E1306C")
+
+    # 액션 버튼 (좋아요, 공유 등)
+    c1, c2, c3 = st.columns([1, 1, 3])
+    with c1:
+        # 좋아요 기능 (세션 스테이트 사용)
+        if "likes" not in st.session_state:
+            st.session_state.likes = 0
             
-        st.caption(f"📜 {desc}")
-
-    with tab2:
-        user_input = st.text_input("숫자를 입력하세요 (예: 생년월일, 기념일)", placeholder="Numbers only...")
-        if user_input:
-            num_input = ''.join(filter(str.isdigit, user_input))
-
-    st.markdown("---")
-
-    # 컨트롤러 (속도, 옥타브)
-    col_ctrl1, col_ctrl2 = st.columns(2)
-    with col_ctrl1:
-        bpm = st.slider("Tempo", 1, 10, 5)
-    with col_ctrl2:
-        octave = st.select_slider("Octave", options=[3, 4, 5], value=4)
-
-    # 생성 버튼
-    generate_btn = st.button("Generate Harmony")
-
-# --- 5. 결과물 출력 (하단) ---
-if num_input and generate_btn:
-    st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("❤️"):
+            st.session_state.likes += 1
+            
+    with c2:
+        st.button("💬") # 댓글 척하기
     
-    # 오디오 생성
-    with st.spinner("Calculating Frequencies..."):
-        audio_data = numbers_to_melody(num_input, bpm, octave)
-        
-        # 1. 시각화 (Area Chart로 파동 느낌 연출)
-        chart_data = [int(d) for d in num_input if d != '0'][:50] # 50개만 샘플링
-        st.area_chart(chart_data, height=120, color="#8B5FBF")
-        
-        # 2. 오디오 플레이어
-        virtual_file = io.BytesIO()
-        write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
-        st.audio(virtual_file, format='audio/wav')
-        
-        # 3. 다운로드 버튼 (중앙 정렬)
-        c_d1, c_d2, c_d3 = st.columns([1, 1, 1])
-        with c_d2:
+    with c3:
+        # 재생 버튼을 크게
+        play_triggered = st.button("▶️ Play Music", use_container_width=True)
+
+    # 좋아요 수 및 캡션
+    st.markdown(f"**좋아요 {st.session_state.likes}개**")
+    
+    # 캡션 (감성 글귀)
+    st.markdown(f"""
+    <span style='font-weight:bold;'>Math_DJ_Official</span> 
+    숫자 뒤에 숨겨진 멜로디를 들어보세요. 당신의 숫자는 어떤 소리를 내나요? 🌌
+    <br><br>
+    <span style='color:#3897f0;'>{hashtags}</span>
+    """, unsafe_allow_html=True)
+    
+    # [음악 재생 로직]
+    if play_triggered:
+        with st.spinner("비트 찍는 중... 💿"):
+            # 기본 설정값
+            bpm = 5
+            octave = 4
+            
+            audio_data = numbers_to_melody(target_nums, bpm, octave)
+            
+            # 파일 변환
+            virtual_file = io.BytesIO()
+            write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
+            
+            # 오디오 플레이어 (화면 하단에 뜨게 됨)
+            st.audio(virtual_file, format='audio/wav')
+            
+            # 다운로드 링크 제공
             st.download_button(
-                label="📥 MP3 다운로드 (소장용)",
+                label="💾 이 트랙 다운로드",
                 data=virtual_file,
-                file_name="harmonia_result.wav",
+                file_name="Mathgram_Track.wav",
                 mime="audio/wav",
                 use_container_width=True
             )
 
-# 하단 여백
-st.markdown("<br><br><br>", unsafe_allow_html=True)
+else:
+    st.info("👆 위에서 재생할 목록을 선택하거나 숫자를 입력해주세요.")
+
+# [네비게이션 바 흉내]
+st.markdown("<br><br>", unsafe_allow_html=True)
+c_nav1, c_nav2, c_nav3, c_nav4, c_nav5 = st.columns(5)
+with c_nav1: st.markdown("<div style='text-align:center;'>🏠</div>", unsafe_allow_html=True)
+with c_nav2: st.markdown("<div style='text-align:center;'>🔍</div>", unsafe_allow_html=True)
+with c_nav3: st.markdown("<div style='text-align:center;'>➕</div>", unsafe_allow_html=True)
+with c_nav4: st.markdown("<div style='text-align:center;'>❤️</div>", unsafe_allow_html=True)
+with c_nav5: st.markdown("<div style='text-align:center;'>👤</div>", unsafe_allow_html=True)
