@@ -3,253 +3,299 @@ import numpy as np
 from scipy.io.wavfile import write
 import io
 import pandas as pd
-import altair as alt # 더 예쁜 그래프를 위해 Altair 사용
+import altair as alt
 
 # --- 1. 페이지 설정 ---
-st.set_page_config(page_title="Math Music Lab", page_icon="🎹", layout="wide")
+st.set_page_config(page_title="Math Music: Serendipity", page_icon="🌸", layout="wide")
 
-# --- 2. 세련되고 트렌디한 스타일링 (CSS) ---
+# --- 2. 아름다운 디자인 (CSS) ---
 st.markdown("""
 <style>
-    /* [폰트 및 기본 컬러 설정] */
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Pretendard:wght@300;400;600&display=swap');
-    
+    /* [폰트 설정] */
+    @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Montserrat:wght@400;600&display=swap');
+
     :root {
-        --bg-color: #FAFAFA; /* 아주 연한 미색 배경 */
-        --text-color: #2C3E50; /* 진한 차콜색 텍스트 */
-        --accent-color: #FF8E53; /* 포인트 컬러 (코랄 오렌지) */
-        --card-bg: #FFFFFF;
-        --shadow: 0 10px 30px rgba(0,0,0,0.05); /* 부드러운 그림자 */
+        --bg-color: #FFF9F9; /* 아주 연한 핑크빛 화이트 */
+        --primary-color: #FFB7B2; /* 파스텔 코랄 */
+        --secondary-color: #E2F0CB; /* 파스텔 그린 */
+        --accent-color: #C7CEEA; /* 파스텔 퍼플 */
+        --text-dark: #4A4A4A; /* 부드러운 차콜 */
     }
 
-    /* 전체 적용 및 다크모드 방어 */
-    html, body, .stApp {
+    /* 전체 배경 및 폰트 */
+    .stApp {
         background-color: var(--bg-color) !important;
-        color: var(--text-color) !important;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
+        color: var(--text-dark) !important;
+        font-family: 'Gowun Dodum', sans-serif !important;
+    }
+
+    /* [ISSUE FIX] 탭/라디오 버튼 선택 시 글씨 안 보이는 문제 해결 */
+    /* 탭(Tab) 스타일 커스텀 */
+    button[data-baseweb="tab"] {
+        background-color: transparent !important;
+        border-radius: 20px !important;
+        color: #888 !important;
+        font-weight: normal !important;
+        border: 1px solid transparent !important;
+    }
+    /* 선택된 탭: 진한 배경 대신 연한 파스텔톤 배경 + 진한 글씨 */
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background-color: #FFF0F5 !important; /* 연한 분홍 */
+        color: #FF6B6B !important; /* 진한 핑크 글씨 */
+        border: 1px solid #FFB7B2 !important;
+        font-weight: bold !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     
-    h1, h2, h3, h4, h5, h6, p, div, span, label {
-        color: var(--text-color) !important;
+    /* 라디오 버튼 커스텀 */
+    div[role="radiogroup"] label {
+        background-color: #FFFFFF !important;
+        border: 1px solid #EEE !important;
+        padding: 10px 15px !important;
+        border-radius: 12px !important;
+        margin-bottom: 5px !important;
+        color: #555 !important;
+        transition: 0.2s;
+    }
+    /* 선택된 라디오 버튼 텍스트 색상 강제 지정 */
+    div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
+        background-color: #FFB7B2 !important; /* 체크박스 색 */
     }
 
-    /* [타이포그래피 디자인] */
+    /* [타이틀 디자인] */
+    .title-area {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 20px;
+    }
     .main-title {
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: 3.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FFC371); /* 세련된 그라데이션 */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 3rem;
+        font-weight: 600;
+        background: linear-gradient(90deg, #FF9A9E, #FECFEF);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: -1px;
-        margin-bottom: 5px;
+        letter-spacing: 2px;
     }
     .sub-title {
-        font-size: 1.1rem;
-        color: #666 !important;
-        margin-bottom: 30px;
-        font-weight: 400;
-    }
-    .section-header {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-    }
-    .section-header span { /* 아이콘 배경 */
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px; height: 32px;
-        background-color: #FFF0F5; color: #FF6B6B;
-        border-radius: 10px; margin-right: 10px;
+        color: #888;
+        font-size: 1rem;
+        margin-top: 10px;
     }
 
-    /* [카드 UI 디자인] */
-    .stylish-card {
-        background-color: var(--card-bg);
+    /* [카드 UI: 마카롱 스타일] */
+    .macaron-card {
+        background-color: #FFFFFF;
         padding: 30px;
-        border-radius: 24px;
-        box-shadow: var(--shadow);
-        border: 1px solid rgba(0,0,0,0.03);
-        transition: transform 0.3s ease;
-    }
-    .stylish-card:hover {
-        transform: translateY(-5px); /* 마우스 올리면 살짝 떠오름 */
-    }
-
-    /* [입력창 및 버튼 디자인] */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: 12px !important;
-        border: 1px solid #E0E0E0 !important;
-        padding: 10px 15px !important;
-        background-color: #F9F9F9 !important;
-        transition: all 0.3s;
-    }
-    .stTextInput input:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {
-        border-color: var(--accent-color) !important;
-        background-color: #FFF !important;
-        box-shadow: 0 0 0 3px rgba(255, 142, 83, 0.1) !important;
+        border-radius: 30px;
+        box-shadow: 0 10px 30px rgba(255, 183, 178, 0.15); /* 부드러운 핑크 그림자 */
+        border: 1px solid #FFF0F0;
+        margin-bottom: 25px;
     }
     
-    /* 재생 버튼 */
-    .play-button > button {
-        background: linear-gradient(45deg, #FF6B6B, #FF8E53) !important;
-        color: white !important;
-        border: none;
+    /* 섹션 헤더 */
+    .section-header {
+        font-size: 1.2rem;
+        color: #6D6D6D;
+        margin-bottom: 20px;
+        border-left: 4px solid #FFB7B2;
+        padding-left: 15px;
+        font-weight: bold;
+    }
+
+    /* [말풍선 팁] */
+    .soft-tip {
+        background-color: #F3F8FF;
+        border-radius: 20px;
+        padding: 20px;
+        color: #5B7BB2;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        border: 1px dashed #C7CEEA;
+    }
+
+    /* [입력창 예쁘게] */
+    .stTextInput input {
+        border-radius: 15px !important;
+        border: 2px solid #F0F0F0 !important;
+        padding: 12px !important;
+        color: #555 !important;
+    }
+    .stTextInput input:focus {
+        border-color: #FFB7B2 !important;
+        box-shadow: none !important;
+    }
+
+    /* [재생 버튼] */
+    .play-btn-area button {
+        background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%) !important;
+        color: #fff !important;
+        font-weight: bold;
         border-radius: 50px;
         height: 60px;
-        font-size: 1.2rem;
-        font-weight: 700;
-        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
-        transition: all 0.3s !important;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 5px 15px rgba(161, 196, 253, 0.4);
+        transition: transform 0.2s;
     }
-    .play-button > button:hover {
-        transform: scale(1.03) !important;
-        box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+    .play-btn-area button:hover {
+        transform: translateY(-3px);
     }
-
-    /* [말풍선 팁 디자인] */
-    .bubble-tip {
-        position: relative;
-        background: #EBF5FF; /* 아주 연한 파랑 */
-        color: #0056b3 !important;
-        padding: 20px 25px;
-        border-radius: 20px;
-        border-bottom-left-radius: 5px; /* 말풍선 꼬리 느낌 */
-        margin-top: 20px;
-        line-height: 1.6;
-        box-shadow: 0 5px 15px rgba(13, 71, 161, 0.08);
-    }
-    .bubble-tip b { color: #004085 !important; }
-    
-    /* 탭 디자인 커스텀 */
-    div[data-baseweb="tab-list"] {
-        gap: 10px; margin-bottom: 20px;
-    }
-    button[data-baseweb="tab"] {
-        background-color: #F0F0F0 !important;
-        border-radius: 10px !important;
-        border: none !important;
-        padding: 8px 16px !important;
-        color: #666 !important;
-        font-weight: 600 !important;
-    }
-    button[data-baseweb="tab"][aria-selected="true"] {
-        background-color: #2C3E50 !important; /* 선택된 탭 */
-        color: #FFF !important;
-    }
-
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (기존과 동일) ---
-def generate_tone(freq, duration, wave_type):
-    sample_rate = 44100
+# --- 3. 오디오 엔진 (Melodical Upgrade) ---
+# 기존의 단순한 1:1 매칭이 아니라, 리듬과 화음을 추가하여 '진짜 음악'처럼 만듭니다.
+
+def generate_piano_note(freq, duration, sample_rate=44100):
     t = np.linspace(0, duration, int(sample_rate * duration), False)
     
-    if "물방울" in wave_type: wave = np.sin(2 * np.pi * freq * t)
-    elif "첼로" in wave_type:
-        bass_freq = freq * 0.5
-        wave = 0.7 * np.sin(2 * np.pi * bass_freq * t) + 0.3 * np.sin(2 * np.pi * bass_freq * 2 * t)
-    else: wave = 2 * np.abs(2 * (t * freq - np.floor(t * freq + 0.5))) - 1
+    # [Piano Synthesis] 피아노처럼 풍성한 소리 만들기
+    # 기본음 + 배음(Overtones)을 섞고, 타격음(Attack)을 시뮬레이션
+    tone = 0.6 * np.sin(2 * np.pi * freq * t)
+    tone += 0.3 * np.sin(2 * np.pi * freq * 2 * t) * np.exp(-3 * t) # 2배음
+    tone += 0.1 * np.sin(2 * np.pi * freq * 3 * t) * np.exp(-5 * t) # 3배음
     
-    decay = np.exp(-3 * t)
-    return wave * decay
+    # ADSR Envelope (부드러운 감쇠)
+    envelope = np.exp(-2.5 * t) 
+    
+    return tone * envelope
 
-def numbers_to_melody(number_str, bpm, wave_type):
-    freqs = {'1':261.63,'2':293.66,'3':329.63,'4':349.23,'5':392.00,'6':440.00,'7':493.88,'8':523.25,'9':587.33,'0':0}
+def numbers_to_beautiful_music(number_str, bpm):
+    # [음악 이론] 펜타토닉 스케일 (어떤 순서로 연주해도 아름다운 음계)
+    # C Major Pentatonic: C(도), D(레), E(미), G(솔), A(라) + 높은음
+    scale = {
+        '1': 261.63, # C4
+        '2': 293.66, # D4
+        '3': 329.63, # E4
+        '4': 392.00, # G4
+        '5': 440.00, # A4
+        '6': 523.25, # C5
+        '7': 587.33, # D5
+        '8': 659.25, # E5
+        '9': 783.99, # G5
+        '0': 0       # 쉼표
+    }
+    
     melody = []
-    duration = 60.0 / bpm
-    for char in number_str:
-        if char in freqs:
-            f = freqs[char]
-            tone = np.zeros(int(44100 * duration)) if f == 0 else generate_tone(f, duration, wave_type)
+    base_duration = 60.0 / bpm
+    
+    for i, char in enumerate(number_str):
+        if char in scale:
+            freq = scale[char]
+            
+            # [Melody Logic] 숫자에 따라 리듬(길이)을 다르게 줌 (리듬감 형성)
+            # 짝수는 짧고 경쾌하게(0.5박), 홀수는 길고 우아하게(1박)
+            digit = int(char)
+            if digit == 0:
+                duration = base_duration
+                tone = np.zeros(int(44100 * duration))
+            elif digit % 2 == 0: 
+                duration = base_duration * 0.5 # 8분음표
+            else: 
+                duration = base_duration # 4분음표
+
+            if freq > 0:
+                tone = generate_piano_note(freq, duration)
+                
+                # [Harmony Logic] 3의 배수일 때 화음(3도 위) 추가 -> 풍성함 UP
+                if digit % 3 == 0:
+                    harmony_freq = freq * 1.25 # 장3도 위
+                    harmony_tone = generate_piano_note(harmony_freq, duration)
+                    tone = tone + (harmony_tone * 0.6) # 화음 섞기
+            else:
+                tone = np.zeros(int(44100 * duration))
+                
             melody.append(tone)
+            
     if not melody: return None
     return np.concatenate(melody)
 
 # --- 4. 메인 UI 구성 ---
 
-# 타이틀 영역
-st.markdown('<div class="main-title">Math Music Lab.</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">숫자 속에 숨겨진 나만의 멜로디를 발견하세요 🎹</div>', unsafe_allow_html=True)
-st.write("")
+st.markdown('<div class="title-area"><div class="main-title">Serendipity</div><div class="sub-title">수학이 그리는 우연한 아름다움</div></div>', unsafe_allow_html=True)
 
-# 메인 레이아웃 (좌우 분할)
-col_control, col_result = st.columns([1, 1.4], gap="large")
+col1, col2 = st.columns([1, 1.2], gap="large")
 
-# [왼쪽 컨트롤 패널]
-with col_control:
-    with st.container():
-        st.markdown('<div class="stylish-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span>1️⃣</span> 숫자 고르기</div>', unsafe_allow_html=True)
+with col1:
+    st.markdown('<div class="macaron-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Numbers (숫자)</div>', unsafe_allow_html=True)
+    
+    # 탭 디자인 개선
+    tab_math, tab_custom = st.tabs(["✨ 신비로운 상수", "💌 나의 숫자"])
+    
+    with tab_math:
+        # 라디오 버튼 선택 시 배경 문제 해결됨
+        math_choice = st.radio("영감을 줄 숫자를 선택하세요", 
+                              ["Pi (원주율) - 영원한 흐름", "Golden Ratio (황금비) - 완벽한 균형", "Euler (자연상수) - 성장의 미학"],
+                              label_visibility="collapsed")
         
-        tab_math, tab_custom = st.tabs(["✨ 유명한 상수", "🖊️ 직접 입력"])
-        with tab_math:
-            math_choice = st.radio("들어보고 싶은 수는?", ["원주율 (π)", "자연상수 (e)", "황금비 (φ)"], label_visibility="collapsed")
-            if "원주율" in math_choice: nums = "314159265358979323846264338327950288419716939937510"
-            elif "자연상수" in math_choice: nums = "271828182845904523536028747135266249775724709369995"
-            else: nums = "161803398874989484820458683436563811772030917980576"
-        with tab_custom:
-            user_input = st.text_input("생일이나 기념일을 입력하세요", placeholder="YYYYMMDD")
-            if user_input: nums = ''.join(filter(str.isdigit, user_input))
-            elif 'nums' not in locals(): nums = "12345678" # 기본값
-        
-        st.write("") # 여백
-        st.markdown('<div class="section-header"><span>2️⃣</span> 사운드 디자인</div>', unsafe_allow_html=True)
-        sound_type = st.selectbox("악기 선택", ["🎻 따뜻한 첼로 (Low Bass)", "💧 맑은 물방울 (Sine)", "✨ 반짝이는 소리 (Triangle)"])
-        bpm = st.slider("빠르기 (Tempo)", 60, 180, 110)
-        st.markdown('</div>', unsafe_allow_html=True) # 카드 닫기
+        if "Pi" in math_choice: nums = "314159265358979323846264338327950288419716939937510"
+        elif "Golden" in math_choice: nums = "161803398874989484820458683436563811772030917980576"
+        else: nums = "271828182845904523536028747135266249775724709369995"
+            
+    with tab_custom:
+        user_input = st.text_input("당신의 특별한 날짜를 입력하세요", placeholder="예: 20241225")
+        if user_input: nums = ''.join(filter(str.isdigit, user_input))
+        elif 'nums' not in locals(): nums = "12345678"
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # 말풍선 팁
+    # 감성적인 설명
     st.markdown("""
-    <div class="bubble-tip">
-        <b>💡 수학 선생님의 비밀 노트</b><br>
-        "소리는 공기의 떨림이야. 숫자가 클수록 빨리 떨려서 높은 소리가 나지! 
-        방금 고른 <b>첼로 소리</b>는 파도 모양 그래프 두 개를 수학적으로 섞어서 만든 거란다."
+    <div class="soft-tip">
+        <b>🌿 힐링 포인트</b><br>
+        이 음악은 <b>'펜타토닉 스케일'</b>로 만들어졌어요. 
+        마치 풍경(Wind chime) 소리처럼, 어떤 숫자가 와도 서로 어울리며 
+        아름다운 화음을 만들어냅니다. 눈을 감고 들어보세요.
     </div>
     """, unsafe_allow_html=True)
 
-# [오른쪽 결과 패널]
-with col_result:
-    st.markdown('<div class="stylish-card" style="background-color:#F8FFFF; border-color:#E0F7FA;">', unsafe_allow_html=True)
-    st.markdown('<div class="section-header" style="color:#00838F;"><span>3️⃣</span> 멜로디 시각화 & 재생</div>', unsafe_allow_html=True)
+with col2:
+    st.markdown('<div class="macaron-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Visualizer (시각화)</div>', unsafe_allow_html=True)
     
     if nums:
-        # [NEW] 젤리 버블 차트 (Altair 사용)
-        digits = [int(d) for d in nums[:25] if d != '0'] # 0 제외, 25개만
-        chart_data = pd.DataFrame({'Order': range(len(digits)), 'Note': digits, 'Size': [d*10 for d in digits]})
+        # [Visual Upgrade] 몽환적인 버블 차트
+        digits = [int(d) for d in nums[:20] if d != '0']
+        
+        # 데이터프레임
+        df = pd.DataFrame({
+            'x': range(len(digits)),
+            'y': digits,
+            'size': [d * 15 + 100 for d in digits], # 크기 변화
+            'color': digits # 색상 변화 기준
+        })
 
-        # Altair 차트 정의 (탱글한 젤리 느낌)
-        chart = alt.Chart(chart_data).mark_circle().encode(
-            x=alt.X('Order', axis=None), # 축 숨김
-            y=alt.Y('Note', axis=None, scale=alt.Scale(domain=[0, 10], padding=1)), # 축 숨김, 여백 줌
-            size=alt.Size('Size', legend=None, scale=alt.Scale(range=[150, 1000])), # 크기 범위 설정
-            color=alt.Color('Note', legend=None, scale=alt.Scale(scheme='rainbow')), # 무지개색
-            tooltip=['Note', 'Order'] # 마우스 오버 시 정보 표시
-        ).configure_mark(
-            opacity=0.7, # 약간 투명하게
-            stroke='white', strokeWidth=2, # 흰색 테두리로 깔끔하게
-        ).configure_view(strokeWidth=0).properties(height=300) # 테두리 없앰
+        # Altair로 파스텔톤 차트 그리기
+        chart = alt.Chart(df).mark_circle().encode(
+            x=alt.X('x', axis=None),
+            y=alt.Y('y', axis=None, scale=alt.Scale(domain=[-1, 11])),
+            size=alt.Size('size', legend=None),
+            color=alt.Color('color', scale=alt.Scale(scheme='pastel1'), legend=None), # 파스텔 색상
+            tooltip=['y']
+        ).properties(
+            height=300
+        ).configure_view(strokeWidth=0) # 테두리 제거
 
-        st.caption(f"🎼 연주 시퀀스: {nums[:15]}...")
         st.altair_chart(chart, use_container_width=True)
+        st.caption(f"🎶 Melody Sequence: {nums[:15]}...")
+
+        st.write("")
         
-        st.write("") # 여백
-        
-        # 재생 버튼 (스타일 적용을 위해 컨테이너 사용)
+        # 재생 버튼 스타일 적용
         with st.container():
-            st.markdown('<div class="play-button">', unsafe_allow_html=True)
-            if st.button("🎵 멜로디 재생하기 (Play)", use_container_width=True):
-                with st.spinner("수학 공식을 음악으로 바꾸는 중... 🎧"):
-                    audio_data = numbers_to_melody(nums, bpm, sound_type)
+            st.markdown('<div class="play-btn-area">', unsafe_allow_html=True)
+            if st.button("🎹 Play Beautiful Melody", use_container_width=True):
+                with st.spinner("아름다운 선율을 조율 중입니다..."):
+                    # BPM을 약간 느리게(Andante) 설정하여 감성적으로
+                    audio_data = numbers_to_beautiful_music(nums, bpm=90)
                     virtual_file = io.BytesIO()
                     write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
                     st.audio(virtual_file, format='audio/wav')
-                    st.balloons()
             st.markdown('</div>', unsafe_allow_html=True)
+            
     else:
-        st.info("왼쪽에서 숫자를 입력해주세요.")
-    st.markdown('</div>', unsafe_allow_html=True) # 카드 닫기
+        st.info("숫자를 선택해주세요.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
