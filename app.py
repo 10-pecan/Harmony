@@ -6,48 +6,95 @@ import io
 # --- 1. 페이지 설정 ---
 st.set_page_config(page_title="수의 선율", page_icon="🎼", layout="wide")
 
-# --- 2. 스타일링 (깔끔하고 교육적인 느낌) ---
+# --- 2. 스타일링 (가독성 완벽 개선) ---
 st.markdown("""
 <style>
-    .stApp { background-color: #FDFCF0; color: #333; } /* 따뜻한 종이 색감 */
-    h1 { font-family: 'KoPub Batang', serif; color: #1a1a1a; }
+    /* 1. 전체 배경: 따뜻한 아이보리색 */
+    .stApp {
+        background-color: #FDFCF0;
+    }
+    
+    /* 2. 모든 기본 텍스트를 강제로 '진한 회색'으로 고정 (다크모드 방지) */
+    html, body, p, div, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown {
+        color: #2c3e50 !important; 
+        font-family: 'KoPub Batang', serif; /* 명조체 느낌 */
+    }
+    
+    /* 3. 제목 스타일 */
+    h1 {
+        font-weight: bold;
+        color: #1a1a1a !important;
+        border-bottom: 2px solid #333;
+        padding-bottom: 10px;
+    }
+
+    /* 4. 수학 설명 박스 디자인 */
     .math-box {
-        background-color: #e8f4f8;
-        padding: 15px;
+        background-color: #e8f4f8; /* 연한 파랑 */
+        padding: 20px;
         border-radius: 10px;
         border-left: 5px solid #007bff;
         margin-bottom: 20px;
-        font-size: 0.9em;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    /* 박스 안의 글씨도 강제 검정 */
+    .math-box p, .math-box li, .math-box b {
+        color: #333 !important;
+    }
+
+    /* 5. 입력창(Input) 글씨 색상 문제 해결 */
+    .stTextInput input {
+        color: #333 !important;      /* 입력 글씨 검정 */
+        background-color: #ffffff;   /* 배경 흰색 */
+        border: 1px solid #ddd;
+    }
+    /* 셀렉트박스(Selectbox) 텍스트 해결 */
+    .stSelectbox div[data-baseweb="select"] > div {
+        background-color: #ffffff;
+        color: #333 !important;
+    }
+    
+    /* 6. 버튼 스타일 (버튼은 어둡게, 글씨는 하얗게) */
     .stButton>button {
-        background-color: #333;
-        color: white;
+        background-color: #2c3e50 !important;
+        color: #ffffff !important; /* 버튼 글씨는 흰색 */
+        border: none;
         border-radius: 5px;
-        width: 100%;
+        padding: 10px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #1a252f !important;
+    }
+    
+    /* 7. 탭(Tab) 글씨 색상 */
+    button[data-baseweb="tab"] {
+        color: #555 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #000 !important;
+        font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (단순화된 버전) ---
+# --- 3. 오디오 엔진 ---
 def generate_tone(freq, duration, wave_type):
     sample_rate = 44100
     t = np.linspace(0, duration, int(sample_rate * duration), False)
     
-    # 수학적 파형 생성
     if wave_type == "부드러운 소리 (Sine)":
         wave = np.sin(2 * np.pi * freq * t)
     elif wave_type == "단단한 소리 (Square)":
         wave = np.sign(np.sin(2 * np.pi * freq * t)) * 0.5
-    else: # 맑은 소리 (Triangle)
+    else: # Triangle
         wave = 2 * np.abs(2 * (t * freq - np.floor(t * freq + 0.5))) - 1
         
-    # 소리 끝을 부드럽게 (Decay) - 지수 함수 활용
     decay = np.exp(-3 * t)
     return wave * decay
 
 def numbers_to_melody(number_str, bpm, wave_type):
-    # C Major Scale (다장조) - 피타고라스 음계 기반
-    # 1=도, 2=레, 3=미, 4=파, 5=솔, 6=라, 7=시, 8=높은도, 9=높은레, 0=쉼표
     freqs = {
         '1': 261.63, '2': 293.66, '3': 329.63, '4': 349.23,
         '5': 392.00, '6': 440.00, '7': 493.88, '8': 523.25, 
@@ -55,7 +102,7 @@ def numbers_to_melody(number_str, bpm, wave_type):
     }
     
     melody = []
-    duration = 60.0 / bpm # 1박자의 시간(초)
+    duration = 60.0 / bpm
     
     for char in number_str:
         if char in freqs:
@@ -73,8 +120,9 @@ def numbers_to_melody(number_str, bpm, wave_type):
 
 st.title("🎼 수(數)의 선율")
 st.markdown("### 수학적 규칙이 아름다운 음악이 되는 곳")
+st.markdown("---")
 
-col1, col2 = st.columns([1, 1.5])
+col1, col2 = st.columns([1, 1.3])
 
 with col1:
     st.subheader("1. 숫자 선택")
@@ -98,20 +146,22 @@ with col1:
         st.info(desc)
 
     with tab_custom:
-        user_input = st.text_input("숫자를 입력해보세요 (예: 생년월일)", placeholder="12345678")
+        user_input = st.text_input("숫자를 입력해보세요 (예: 생년월일 8자리)", placeholder="20240101")
         if user_input:
             nums = ''.join(filter(str.isdigit, user_input))
-        elif 'nums' not in locals(): # 사용자 입력이 없고 상수 탭도 아닐 때
+        elif 'nums' not in locals():
              nums = "12345678"
 
+    st.write("") # 여백
     st.subheader("2. 악기 설정")
     sound_type = st.selectbox("음색 선택", ["부드러운 소리 (Sine)", "단단한 소리 (Square)", "맑은 소리 (Triangle)"])
     bpm = st.slider("빠르기 (BPM)", 60, 180, 120)
 
+    st.write("") 
     # 수학 설명 박스
     st.markdown("""
     <div class="math-box">
-        <b>💡 수학 선생님을 위한 Tip</b><br>
+        <b>💡 수학 선생님을 위한 Tip</b>
         <ul>
             <li><b>사인파(Sine):</b> $y = \sin(x)$ 그래프처럼 가장 기본적이고 순수한 소리입니다.</li>
             <li><b>주파수(Hz):</b> 1초에 진동하는 횟수입니다. '라(A)'음은 440Hz로 약속되어 있습니다.</li>
@@ -124,16 +174,21 @@ with col2:
     st.subheader("3. 연주 및 분석")
     
     if nums:
-        # 시각화 (악보처럼)
+        # 1. 시각화 (차트 색상도 진하게 변경)
         digits = [int(d) for d in nums[:20] if d != '0']
-        st.bar_chart(digits, height=150, color="#333333")
-        st.caption(f"선택된 숫자열: {nums[:20]}...")
         
-        if st.button("🎵 연주 시작 (Play)", use_container_width=True):
+        # 차트 제목
+        st.caption(f"🎵 선택된 숫자열: {nums[:20]}...")
+        
+        # 바 차트 (색상 설정은 Streamlit 기본 테마를 따르지만, 배경이 밝아서 잘 보임)
+        st.bar_chart(digits, height=180)
+        
+        st.write("") # 여백
+        
+        # 2. 플레이어
+        if st.button("▶️ 연주 시작 (Play)", use_container_width=True):
             with st.spinner("숫자를 파동으로 변환하고 있습니다..."):
                 audio_data = numbers_to_melody(nums, bpm, sound_type)
-                
-                # 메모리에 오디오 파일 생성
                 virtual_file = io.BytesIO()
                 write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
                 
