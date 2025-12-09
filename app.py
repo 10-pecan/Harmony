@@ -43,9 +43,12 @@ st.markdown("""
     }
 
     /* 탭 & 버튼 커스텀 */
+    div[data-baseweb="tab-list"] { background-color: transparent !important; }
+    button[data-baseweb="tab"] { background-color: transparent !important; color: #8b949e !important; border: none !important; }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #4facfe !important; border-bottom: 3px solid #4facfe !important; font-weight: bold !important;
+        color: #4facfe !important; border-bottom: 3px solid #4facfe !important; font-weight: bold !important; background-color: transparent !important;
     }
+    
     .stButton>button {
         background: linear-gradient(90deg, #4facfe, #00f2fe) !important;
         color: #fff !important; border: none; height: 65px; border-radius: 12px;
@@ -53,7 +56,14 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
     }
     
-    /* [NEW] 친절한 설명 박스 */
+    /* 입력창 */
+    .stTextInput input {
+        background-color: #161b22 !important;
+        color: white !important;
+        border: 1px solid #30363d !important;
+    }
+
+    /* 친절한 설명 박스 */
     .easy-desc {
         background-color: #161b22;
         border-left: 4px solid #4facfe;
@@ -68,31 +78,46 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (안정화 버전) ---
-# (이전과 동일한 로직 사용 - 에러 방지 포함)
+# --- 3. 오디오 엔진 (길이 보정 로직 강화) ---
 
 def generate_wave(freq, duration, wave_type="sine"):
     sample_rate = 44100
     num_samples = int(sample_rate * duration)
     t = np.linspace(0, duration, num_samples, False)
+    
     if wave_type == "sine": return np.sin(2 * np.pi * freq * t)
     elif wave_type == "saw": return 0.5 * (2 * (freq * t - np.floor(freq * t + 0.5)))
     elif wave_type == "pad": return np.sin(2 * np.pi * freq * t) + 0.5 * np.sin(2 * np.pi * freq * 1.01 * t)
     return np.zeros(num_samples)
 
 def match_length(wave, target_len):
-    if len(wave) == target_len: return wave
-    elif len(wave) > target_len: return wave[:target_len]
-    else: return np.pad(wave, (0, target_len - len(wave)), 'constant')
+    """파형 길이를 강제로 맞춰주는 함수 (에러 방지 핵심)"""
+    current_len = len(wave)
+    if current_len == target_len:
+        return wave
+    elif current_len > target_len:
+        return wave[:target_len] # 길면 자름
+    else:
+        # 짧으면 뒤에 0을 붙여서 늘림
+        return np.pad(wave, (0, target_len - current_len), 'constant')
 
 def apply_envelope(wave, duration, attack_ratio=0.1, release_ratio=0.4):
     total_len = len(wave)
     attack = int(total_len * attack_ratio)
     release = int(total_len * release_ratio)
     sustain = total_len - attack - release
-    if sustain < 0: sustain = 0
+    
+    # 예외 처리: 길이가 너무 짧을 경우
+    if sustain < 0:
+        attack = total_len // 2
+        release = total_len - attack
+        sustain = 0
+
     env = np.concatenate([np.linspace(0, 1, attack), np.full(sustain, 1.0), np.linspace(1, 0, release)])
-    return wave * match_length(env, total_len)
+    
+    # Envelope 길이도 wave와 강제로 맞춤
+    env = match_length(env, total_len)
+    return wave * env
 
 def apply_chorus(wave):
     chorus1 = np.interp(np.arange(0, len(wave), 0.995), np.arange(0, len(wave)), wave)
@@ -121,26 +146,34 @@ def generate_melody_phrase(digit, bpm):
     if digit not in phrases or digit == '0': return np.zeros(int(44100 * quarter_note * 2))
     indices, durations, bass_idx, chord_indices = phrases[digit]
     
+    # 1. Melody 생성
     melody_pieces = []
     for idx, dur in zip(indices, durations):
         tone = generate_wave(scale[idx], dur, "saw")
         tone = apply_envelope(tone, dur, 0.05, 0.2)
         melody_pieces.append(tone)
-    melody_wave = np.concatenate(melody_pieces)
-    target_len = len(melody_wave)
     
+    melody_wave = np.concatenate(melody_pieces)
+    target_len = len(melody_wave) # [기준 길이]
+    
+    # 2. Pad 생성 (기준 길이에 맞춤)
     pad_wave = np.zeros(target_len)
     total_dur = sum(durations)
     for idx in chord_indices:
         tone = generate_wave(scale[idx], total_dur, "pad")
-        pad_wave += match_length(tone, target_len)
+        tone = match_length(tone, target_len) # 강제 맞춤
+        pad_wave += tone
+    
     pad_wave = apply_envelope(pad_wave, total_dur, 0.3, 0.5)
     pad_wave = apply_chorus(pad_wave) * 0.4
+    pad_wave = match_length(pad_wave, target_len) # 코러스 후 다시 맞춤
     
+    # 3. Bass 생성 (기준 길이에 맞춤)
     bass_wave = generate_wave(scale[bass_idx]*0.5, total_dur, "sine")
-    bass_wave = match_length(bass_wave, target_len)
+    bass_wave = match_length(bass_wave, target_len) # 강제 맞춤
     bass_wave = apply_envelope(bass_wave, total_dur, 0.1, 0.3) * 0.6
     
+    # 4. Mixing
     mix = melody_wave + pad_wave + bass_wave
     mx = np.max(np.abs(mix))
     return mix / mx * 0.9 if mx > 0 else mix
@@ -163,7 +196,6 @@ with col_L:
     tab1, tab2 = st.tabs(["🔥 BEST 5", "🖊️ 자유 입력"])
     
     with tab1:
-        # [핵심] 중학생 맞춤형 5대 테마
         theme = st.radio("연주할 테마를 고르세요", 
                  [
                      "1. 원주율 (π) - 동그라미의 비밀", 
@@ -173,7 +205,6 @@ with col_L:
                      "5. 순환소수 (1/7) - 도돌이표 숫자"
                  ], label_visibility="collapsed")
         
-        # 데이터 매핑 및 친절한 설명
         if "원주율" in theme:
             nums = "314159265358979323846264338327950288419716939937510"
             desc_title = "⭕ 원주율 (Pi, 3.14...)"
@@ -191,11 +222,10 @@ with col_L:
             desc_title = "✨ 황금비 (Golden Ratio, 1.618...)"
             desc_text = "신용카드, 파르테논 신전, 모나리자의 공통점? 바로 1:1.618 비율이 숨어있다는 것! 인간이 가장 편안함을 느끼는 비율이래요."
         else:
-            nums = "142857142857142857142857142857142857142857142857142" # 순환소수
+            nums = "142857142857142857142857142857142857142857142857142"
             desc_title = "🔄 순환소수 (1/7, 0.142857...)"
             desc_text = "1 나누기 7을 해보세요. 142857 여섯 숫자가 도돌이표처럼 계속 반복되죠? 음악으로 치면 '무한 반복 재생' 구간입니다."
 
-        # 설명 박스 출력
         st.markdown(f"""
         <div class='easy-desc'>
             <b>{desc_title}</b><br>
@@ -217,7 +247,6 @@ with col_R:
     st.markdown("### 🎚️ 비주얼라이저 & 재생")
     
     if nums:
-        # 네온 스타일 차트
         digits = [int(d) for d in nums[:25] if d != '0']
         chart_data = pd.DataFrame({'Time': range(len(digits)), 'Note': digits})
         
@@ -239,12 +268,9 @@ with col_R:
         
         st.write("")
         
-        # 재생 버튼
         if st.button("▶️ 연주 시작 (PLAY)", use_container_width=True):
             
             with st.container():
-                # 
-                # 사이버펑크 느낌의 오디오 파형 GIF
                 st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm14bWszcGd5eHZ4bzF5eGZ5eGZ5eGZ5eGZ5eGZ5eGZ5/tq7Q6J5Xq3H5C/giphy.gif", 
                          caption="System Processing...", use_container_width=True)
             
