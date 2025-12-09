@@ -6,182 +6,293 @@ import pandas as pd
 import altair as alt
 
 # --- 1. 페이지 설정 ---
-st.set_page_config(page_title="Math Carol Frame Edition", page_icon="🎄", layout="wide")
+st.set_page_config(page_title="Math Carol Masterpiece", page_icon="❄️", layout="wide")
 
-# --- 2. 🎨 Christmas Frame Design ---
+# --- 2. 🎨 Pure CSS Design (이미지 없이 코드로만 구현) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700;900&family=Mountains+of+Christmas:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&family=Cinzel:wght@700&display=swap');
     
-    /* [전체 배경 - 칠판 느낌] */
+    /* [전체 배경: 움직이는 그라데이션 오로라] */
     .stApp {
-        background-color: #2d3436 !important;
-        background-image: url('https://www.transparenttextures.com/patterns/chalkboard.png'); /* 칠판 텍스처 */
-        color: #dfe6e9 !important;
-        font-family: 'Noto Sans KR', sans-serif !important;
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+        font-family: 'Pretendard', sans-serif !important;
+    }
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* [배경을 덮는 화이트 글래스 레이어] */
+    .stApp::before {
+        content: "";
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.85); /* 흰색 반투명 */
+        z-index: -1;
     }
 
-    /* [눈 효과] */
-    .snowflake { position: fixed; top: -10px; z-index: 99; color: #dfe6e9; font-size: 1.2em; animation: fall linear infinite; }
+    /* [눈 내리는 효과] */
+    .snowflake { position: fixed; top: -10px; z-index: 99; color: #fff; font-size: 1.2em; text-shadow: 0 0 5px rgba(0,0,0,0.1); animation: fall linear infinite; }
     @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
 
-    /* [메인 타이틀 - 크리스마스 리스 프레임] */
-    .title-container {
-        text-align: center; padding: 40px;
-        background: url('https://i.imgur.com/8Q7Y46K.png') no-repeat center center; /* 크리스마스 리스 이미지 (예시) */
-        background-size: contain;
-        margin-bottom: 30px;
-    }
+    /* [타이틀 디자인] */
     .main-title {
-        font-family: 'Mountains of Christmas', cursive; font-size: 4.5rem; color: #e74c3c;
-        text-shadow: 3px 3px 0px #2d3436, 5px 5px 0px #c0392b; margin: 0;
+        font-family: 'Cinzel', serif; font-size: 4.5rem; font-weight: 800;
+        text-align: center; color: #c0392b; margin-top: 30px;
+        text-shadow: 0 10px 30px rgba(192, 57, 43, 0.2); letter-spacing: -1px;
     }
-    .sub-title { font-family: 'Noto Sans KR', sans-serif; color: #b2bec3; font-size: 1.2rem; letter-spacing: 2px; margin-top: 10px; }
+    .sub-title {
+        text-align: center; color: #555; font-size: 1.1rem; letter-spacing: 2px;
+        text-transform: uppercase; margin-bottom: 50px; font-weight: 600;
+    }
 
-    /* [탭 스타일 - 선물 상자 느낌] */
-    div[data-baseweb="tab-list"] { gap: 15px; margin-bottom: 25px; }
+    /* [카드 디자인: 애플 스타일 프로스트 글래스] */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px; padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px; transition: transform 0.3s ease;
+    }
+    .glass-card:hover { transform: translateY(-5px); }
+
+    /* [탭 스타일] */
+    div[data-baseweb="tab-list"] { gap: 15px; margin-bottom: 30px; justify-content: center; }
     button[data-baseweb="tab"] {
-        background: #636e72 !important; color: #dfe6e9 !important; border: 2px solid #b2bec3 !important;
-        border-radius: 15px 15px 0 0 !important; font-weight: bold; font-size: 1.1rem;
-        padding: 10px 20px;
+        background: rgba(255,255,255,0.5) !important; border: 1px solid #ddd !important; border-radius: 30px !important;
+        padding: 10px 25px !important; color: #777 !important; font-weight: 600 !important; font-size: 1rem !important;
     }
-    /* 선택된 탭 강조 */
     button[data-baseweb="tab"][aria-selected="true"] {
-        background: #e74c3c !important; color: #fff !important; border-color: #c0392b !important;
+        background: #c0392b !important; color: #fff !important; border-color: #c0392b !important;
+        box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3) !important;
     }
 
-    /* [카드 스타일 - 수학 공책 프레임] */
-    .music-card {
-        background: rgba(255, 255, 255, 0.95); color: #2d3436;
-        border: 5px solid #b2bec3; border-radius: 25px;
-        padding: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        margin-bottom: 25px; height: 100%;
-        background-image: url('https://www.transparenttextures.com/patterns/graphy.png'); /* 모눈종이 텍스처 */
-    }
-
-    /* [버튼 스타일 - 크리스마스 장식] */
+    /* [재생 버튼] */
+    .play-btn { width: 100%; }
     .stButton>button {
         background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%) !important;
-        color: white !important; border-radius: 20px; height: 70px; font-size: 1.4rem; font-weight: 800; border: 3px solid #f1c40f !important; /* 금테 */
-        box-shadow: 0 8px 20px rgba(192, 57, 43, 0.5); transition: 0.3s; width: 100%;
+        color: #fff !important; border: none; height: 65px; border-radius: 16px;
+        font-size: 1.4rem; font-weight: 700; width: 100%;
+        box-shadow: 0 10px 25px rgba(192, 57, 43, 0.3); transition: all 0.3s;
     }
-    .stButton>button:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(192, 57, 43, 0.6); }
+    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 15px 35px rgba(192, 57, 43, 0.4); }
 
-    /* [기타 스타일] */
-    .badge { padding: 8px 16px; border-radius: 25px; font-size: 1rem; font-weight: bold; color: white; display: inline-block; margin-bottom: 15px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
-    .b-1 { background-color: #e74c3c; } .b-2 { background-color: #27ae60; } .b-3 { background-color: #f1c40f; color: #333; }
-    .desc-box { font-size: 1.1rem; line-height: 1.8; color: #555; background: #fff; padding: 25px; border-radius: 20px; border: 3px dashed #c0392b; }
-    h2 { font-family: 'Mountains of Christmas', cursive; color: #c0392b; font-size: 2.5rem; }
+    /* [교육용 뱃지] */
+    .badge {
+        display: inline-block; padding: 6px 14px; border-radius: 20px;
+        font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .b-red { background: #e74c3c; }
+    .b-green { background: #27ae60; }
+    .b-gold { background: #f1c40f; color: #333; }
+    .b-purple { background: #8e44ad; }
+
+    /* [설명 텍스트] */
+    .desc-text { color: #444; line-height: 1.7; font-size: 1.05rem; }
+    .desc-text b { color: #c0392b; }
 </style>
 """, unsafe_allow_html=True)
 
 # 눈 효과
 def create_snow():
-    snow_html = "".join([f'<div class="snowflake" style="left:{np.random.randint(0,100)}vw; animation-duration:{np.random.uniform(8, 15)}s; animation-delay:{np.random.uniform(0, 5)}s;">❄</div>' for _ in range(40)])
+    snow_html = "".join([f'<div class="snowflake" style="left:{np.random.randint(0,100)}vw; animation-duration:{np.random.uniform(8, 20)}s; animation-delay:{np.random.uniform(0, 10)}s;">❄</div>' for _ in range(40)])
     st.markdown(snow_html, unsafe_allow_html=True)
 create_snow()
 
-# --- 3. 🎹 Audio Engine (이전과 동일) ---
-# (지면 관계상 오디오 엔진 코드는 생략하고 이전 버전과 동일하게 사용합니다. 실제 실행 시에는 이전 코드의 오디오 엔진 부분을 여기에 포함시켜야 합니다.)
-# ... [오디오 엔진 코드 삽입] ...
-# (편의를 위해 핵심 함수만 간략히 포함)
-def get_sine(freq, duration): t = np.linspace(0, duration, int(44100 * duration), False); return np.sin(2 * np.pi * freq * t)
-def apply_envelope(wave, duration, type="plucked"): length = len(wave); env = np.exp(np.linspace(0, -4, length)) if type == "plucked" else np.concatenate([np.linspace(0,1,int(length*0.2)), np.full(length-int(length*0.2)-int(length*0.4),1.0), np.linspace(1,0,int(length*0.4))]); return wave * np.resize(env, length)
-def synth_bell(freq, duration): return apply_envelope(np.sin(2 * np.pi * freq * t + 2.0 * np.sin(2 * np.pi * freq * 2.0 * t) * np.exp(-3*t)), duration, "plucked")
-# ... (나머지 악기 및 작곡 함수 동일) ...
+# --- 3. 🎹 Audio Engine (안정화된 합성 로직) ---
 
-# --- 4. UI 렌더링 함수 (새로운 트리 비주얼 적용) ---
+def generate_wave(freq, duration, type="bell"):
+    sr = 44100
+    num_samples = int(sr * duration)
+    t = np.linspace(0, duration, num_samples, False)
+    
+    if type == "bell": # 밝은 벨소리
+        return 0.6*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*2*t)*np.exp(-2*t) + 0.1*np.sin(2*np.pi*freq*4*t)
+    elif type == "strings": # 풍성한 스트링
+        return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*1.01*t) + 0.2*np.sin(2*np.pi*freq*0.5*t)
+    elif type == "choir": # 웅장한 코러스
+        return 0.3*np.sin(2*np.pi*freq*t) + 0.3*np.sin(2*np.pi*freq*0.998*t) + 0.3*np.sin(2*np.pi*freq*1.002*t)
+    elif type == "sleigh": # 썰매 벨
+        noise = np.random.uniform(-1, 1, len(t))
+        return 0.1 * noise * np.sin(2*np.pi*3000*t) * np.exp(-15*t)
+    return np.zeros(num_samples)
 
-def render_content(key, style, title, badge, desc, default_nums):
+# [핵심 Fix] 길이 강제 맞춤 (에러 방지)
+def match_len(wave, length):
+    if len(wave) == length: return wave
+    elif len(wave) > length: return wave[:length]
+    else: return np.pad(wave, (0, length - len(wave)), 'constant')
+
+def apply_envelope(wave, duration, type="short"):
+    length = len(wave)
+    if type == "short": 
+        env = np.exp(np.linspace(0, -5, length))
+    else:
+        att = int(length*0.2); rel = int(length*0.3); sus = length - att - rel
+        if sus < 0: sus = 0
+        env = np.concatenate([np.linspace(0,1,att), np.full(sus,1.0), np.linspace(1,0,rel)])
+    
+    # Envelope 길이도 Wave와 맞춤
+    env = match_len(env, length)
+    return wave * env
+
+# 작곡 엔진 (스타일별)
+def compose_music(nums, bpm, style):
+    # 안전한 스케일 (인덱스 에러 방지용으로 길게)
+    if style == "joyful": # C Major
+        scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
+    elif style == "waltz": # D Major
+        scale = [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99]
+    else: # A Minor (Holy)
+        scale = [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]
+
+    beat_sec = 60.0 / bpm
+    full_track = []
+
+    for digit in nums:
+        if not digit.isdigit(): continue
+        idx = int(digit)
+        base_freq = scale[idx % len(scale)]
+        
+        # 스타일별 프레이즈 생성
+        melody_waves = []
+        notes = [] # (freq, duration_multiplier)
+
+        if style == "joyful": # 셔플 리듬
+            if idx % 2 == 0: notes = [(base_freq, 0.75), (base_freq, 0.25), (base_freq*1.25, 1.0)]
+            else: notes = [(base_freq*1.5, 0.5), (base_freq*1.25, 0.5), (base_freq, 0.5), (base_freq*0.75, 0.5)]
+        elif style == "waltz": # 3/4박자
+            notes = [(base_freq, 1.0), (base_freq*1.25, 1.0), (base_freq*1.5, 1.0)]
+        else: # 4박자 롱노트
+            notes = [(base_freq, 4.0)]
+
+        # 멜로디 합성
+        for f, d in notes:
+            dur = d * beat_sec
+            w = generate_wave(f, dur, "bell" if style != "holy" else "choir")
+            w = apply_envelope(w, dur, "short" if style != "holy" else "long")
+            melody_waves.append(w)
+        
+        melody = np.concatenate(melody_waves)
+        total_len = len(melody)
+
+        # 반주 추가 (길이 강제 보정)
+        pad_freq = base_freq * 0.5
+        pad = generate_wave(pad_freq, total_len/44100, "strings")
+        pad = match_len(pad, total_len) # [Safe Fix]
+        pad = apply_envelope(pad, total_len/44100, "long") * 0.3
+        
+        sleigh = generate_wave(0, total_len/44100, "sleigh")
+        sleigh = match_len(sleigh, total_len) * 0.3 if style == "joyful" else np.zeros(total_len)
+
+        full_track.append(melody + pad + sleigh)
+
+    if not full_track: return None
+    
+    # 전체 합치기 & 리버브
+    full = np.concatenate(full_track)
+    delay = int(44100 * 0.4)
+    res = np.zeros(len(full) + delay)
+    res[:len(full)] += full
+    res[delay:] += full * 0.4
+    
+    m = np.max(np.abs(res))
+    return res / m * 0.95 if m > 0 else res
+
+# --- 4. Main UI ---
+
+st.markdown('<div class="main-title">WHITE WINTER CAROL</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Mathematics × Christmas Symphony</div>', unsafe_allow_html=True)
+
+# 탭 구성 (독립적인 작동을 위해 로직 분리 확인)
+tab1, tab2, tab3, tab4 = st.tabs(["1학년 (도형)", "2학년 (수)", "3학년 (무리수)", "나만의 숫자"])
+
+def render_tab(key_prefix, badge_cls, badge_text, title, desc, default_nums, style):
     c1, c2 = st.columns([1, 1], gap="large")
     
     with c1:
-        st.markdown(f'<div class="music-card">', unsafe_allow_html=True)
-        st.markdown(f'{badge}', unsafe_allow_html=True)
-        st.markdown(f"## {title}")
-        st.markdown(f'<div class="desc-box">{desc}</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="glass-card">
+            <span class="badge {badge_cls}">{badge_text}</span>
+            <h2 style="color:#2c3e50; margin:10px 0;">{title}</h2>
+            <div class="desc-text">{desc}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        user_in = st.text_input("숫자 입력 (나만의 악보 만들기)", value=default_nums, key=f"in_{key}")
-        nums = "".join(filter(str.isdigit, user_in))
-        
-        style_desc = {"joyful": "🔔 <b>Joyful:</b> 징글벨처럼 신나는 셔플 리듬", "waltz": "💃 <b>Waltz:</b> 우아하고 몽환적인 3박자 춤곡", "holy": "👼 <b>Holy:</b> 웅장하고 성스러운 대성당의 합창"}[style]
-        st.caption(style_desc, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # 커스텀 입력창 (4번째 탭용)
+        final_nums = default_nums
+        if key_prefix == "t4":
+            user_input = st.text_input("숫자를 입력하세요 (예: 1225)", value="", key=f"in_{key_prefix}")
+            if user_input: final_nums = "".join(filter(str.isdigit, user_input))
 
     with c2:
-        st.markdown(f'<div class="music-card">', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         
-        # [VISUAL NEW] 음계 연동 트리 비주얼라이저
-        colors = {'joyful': 'reds', 'waltz': 'greens', 'holy': 'oranges'}
-        if nums:
-            digits = [int(d) for d in nums[:30] if d != '0'] # 더 많은 숫자 표시
+        # 트리 비주얼라이저 (음계에 따라 배치)
+        if final_nums:
+            digits = [int(d) for d in final_nums[:30] if d != '0']
             tree_data = []
+            max_width = 10
+            height_scale = 1.5
             
-            # 트리 모양 배치를 위한 계산 (아래는 넓고 위는 좁게)
-            max_width = 10 # 트리 밑단 최대 너비
-            height_scale = 1.5 # 트리 높이 비율
-
             for i, d in enumerate(digits):
-                # Y축: 숫자가 클수록(높은 음) 위쪽으로
                 level = d * height_scale
-                # X축: 숫자가 작을수록(낮은 음) 바깥쪽으로 퍼짐 (트리 모양)
                 spread = (10 - d) * max_width / 10 
-                # X 좌표를 좌우로 번갈아 배치하여 균형 맞춤
-                pos = spread * (1 if i % 2 == 0 else -1) * np.random.uniform(0.5, 1.0)
-
-                tree_data.append({'Level': level, 'Pos': pos, 'Note': d, 'Order': i})
+                pos = spread * (1 if i % 2 == 0 else -1) * np.random.uniform(0.3, 1.0)
+                tree_data.append({'Level': level, 'Pos': pos, 'Note': d})
             
             df = pd.DataFrame(tree_data)
             
-            # 별 장식 (트리 꼭대기)
-            star = pd.DataFrame({'Level': [11 * height_scale], 'Pos': [0], 'Note': [11], 'Order': [-1]})
-            df = pd.concat([df, star], ignore_index=True)
-
-            # 기본 마커 (동그라미 장식)
-            base = alt.Chart(df).mark_circle(size=300, opacity=0.9).encode(
-                x=alt.X('Pos', axis=None),
-                y=alt.Y('Level', axis=None, scale=alt.Scale(domain=[0, 12*height_scale])),
-                color=alt.Color('Note', scale=alt.Scale(scheme=colors[style], domain=[0, 11]), legend=None),
-                tooltip=['Note', 'Order']
-            )
-
-            # 별 마커 (꼭대기 강조)
-            star_marker = base.transform_filter(alt.datum.Note == 11).mark_point(shape='star', size=800, fill='gold')
+            # 탭별 색상 테마
+            color_map = {'t1': 'reds', 't2': 'greens', 't3': 'oranges', 't4': 'purples'}
             
-            # 최종 차트 결합
-            chart = alt.layer(base, star_marker).properties(height=400).configure_view(strokeWidth=0)
-            st.altair_chart(chart, use_container_width=True)
-            st.caption("▲ 숫자의 높낮이가 트리의 장식이 되었어요!")
-        
-        # 재생 버튼 (이전 코드와 동일한 로직 사용)
-        if st.button(f"🎼 Play {title}", key=f"btn_{key}"):
-            # ... [오디오 생성 및 재생 코드 삽입] ...
-            pass # (실제 코드에서는 이 부분에 오디오 생성 로직이 들어가야 합니다.)
+            c = alt.Chart(df).mark_circle(size=350, opacity=0.9).encode(
+                x=alt.X('Pos', axis=None), y=alt.Y('Level', axis=None),
+                color=alt.Color('Note', scale=alt.Scale(scheme=color_map[key_prefix]), legend=None),
+                tooltip=['Note']
+            ).properties(height=300).configure_view(strokeWidth=0)
+            
+            st.altair_chart(c, use_container_width=True)
+            st.caption("▲ 음계의 높낮이로 장식된 크리스마스 트리")
 
+        # 재생 버튼
+        if st.button(f"🔔 캐롤 재생 (Play)", key=f"btn_{key_prefix}"):
+            with st.spinner("캐롤 편곡 중..."):
+                bpm = 120 if style == "joyful" else 100 if style == "waltz" else 80
+                audio = compose_music(final_nums, bpm, style)
+                
+                if audio is not None:
+                    virtual_file = io.BytesIO()
+                    write(virtual_file, 44100, (audio * 32767).astype(np.int16))
+                    st.audio(virtual_file, format='audio/wav')
+                else:
+                    st.error("연주할 숫자가 없습니다.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Main UI ---
+# 탭 내용 렌더링
+with tab1:
+    render_tab("t1", "b-red", "중1 - 도형의 성질", "원주율 (Pi) 징글벨", 
+               "<b>3.141592...</b><br>원은 완벽한 대칭을 가진 도형입니다. 원주율의 불규칙한 숫자들이 <b>경쾌한 셔플 리듬</b>과 만나 썰매를 타는 듯한 신나는 곡이 됩니다.", 
+               "314159265358979323846264338327950288419716939937510", "joyful")
 
-st.markdown("""
-<div class="title-container">
-    <h1 class="main-title">CHRISTMAS MATH CAROL</h1>
-    <div class="sub-title">수학으로 꾸미는 나만의 멜로디 트리</div>
-</div>
-""", unsafe_allow_html=True)
+with tab2:
+    render_tab("t2", "b-green", "중2 - 순환소수", "순환소수 왈츠", 
+               "<b>0.142857...</b><br>같은 구간이 반복되는 순환소수(1/7)입니다. 이 규칙적인 패턴은 <b>우아한 3박자 왈츠</b>와 어우러져 무도회장 같은 분위기를 만듭니다.", 
+               "142857142857142857142857142857142857142857", "waltz")
 
-t1, t2, t3 = st.tabs(["🔴 1학년 (도형)", "🟢 2학년 (수)", "🟡 3학년 (무리수)"])
+with tab3:
+    render_tab("t3", "b-gold", "중3 - 무리수", "루트2 홀리 나이트", 
+               "<b>1.414213...</b><br>정사각형의 대각선 길이인 무리수입니다. 깊고 신비로운 숫자의 배열이 <b>웅장한 합창(Choir)</b>과 만나 성스러운 겨울밤을 연출합니다.", 
+               "141421356237309504880168872420969807856967187537694", "holy")
 
-with t1:
-    render_content(
-        "t1", "joyful", "원주율 (Pi) 징글벨", 
-        '<span class="badge b-1">중1 - 도형의 성질</span>',
-        """
-        <b>3.141592...</b> 원주율은 끝없이 이어지는 비순환 소수입니다.
-        규칙 없는 숫자들이 만드는 예측 불가능한 멜로디가
-        마치 썰매를 타고 달리는 듯한 신나는 캐롤이 됩니다! 🛷
-        """,
-        "314159265358979323846264338327950288419716939937510"
-    )
-# ... (t2, t3 탭 내용도 동일한 방식으로 작성) ...
+with tab4:
+    render_tab("t4", "b-purple", "자유학기제", "나만의 숫자 캐롤", 
+               "<b>Make Your Own Music</b><br>생일, 기념일, 전화번호 등 당신의 소중한 숫자를 입력해보세요. 세상에 하나뿐인 캐롤로 변환해 드립니다.", 
+               "12251225", "joyful")
 
-st.markdown("<br><hr><div style='text-align:center; color:#b2bec3;'>Designed for Joyful Math Education 🎁</div>", unsafe_allow_html=True)
+st.markdown("<br><div style='text-align:center; color:#bbb;'>Designed for Joyful Math Education 🎁</div>", unsafe_allow_html=True)
