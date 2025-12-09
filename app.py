@@ -269,4 +269,14 @@ with col_R:
             st.markdown("""
             <div class="visualizer-container" style="display:flex; justify-content:center; gap:5px; height:50px; align-items:flex-end; margin-bottom:10px;">
                 <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.audio(st.session_state.audio_file, format='audio/wav')
+            st.balloons() # 풍선 대신 눈이 내리지만, 축하 효과도 추가!
+                
+    else:
+        st.warning("숫자를 입력해주세요.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
