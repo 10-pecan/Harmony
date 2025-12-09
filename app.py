@@ -168,4 +168,95 @@ with col_L:
                  [
                      "1. 원주율 (π) - 동그라미의 비밀", 
                      "2. 루트 2 (√2) - 정사각형의 대각선", 
-                     "3. 루트 3 (√
+                     "3. 루트 3 (√3) - 정삼각형의 높이",
+                     "4. 황금비 (φ) - 가장 아름다운 비율",
+                     "5. 순환소수 (1/7) - 도돌이표 숫자"
+                 ], label_visibility="collapsed")
+        
+        # 데이터 매핑 및 친절한 설명
+        if "원주율" in theme:
+            nums = "314159265358979323846264338327950288419716939937510"
+            desc_title = "⭕ 원주율 (Pi, 3.14...)"
+            desc_text = "초등학교 땐 3.14로 배웠지만, 사실은 끝없이 이어지는 무한한 숫자예요. 원의 둘레를 구할 때 꼭 필요하죠!"
+        elif "루트 2" in theme:
+            nums = "141421356237309504880168872420969807856967187537694"
+            desc_title = "📐 루트 2 (Square Root 2, 1.414...)"
+            desc_text = "한 변이 1인 정사각형의 대각선 길이! 중3 피타고라스 정리 시간에 맨 처음 배우는 '무리수'의 대표 선수입니다."
+        elif "루트 3" in theme:
+            nums = "173205080756887729352744634150587236694280525381038"
+            desc_title = "🔺 루트 3 (Square Root 3, 1.732...)"
+            desc_text = "정삼각형을 반으로 잘랐을 때 나오는 높이예요. 입체도형(정육면체) 대각선 구할 때도 등장하는 단골손님!"
+        elif "황금비" in theme:
+            nums = "161803398874989484820458683436563811772030917980576"
+            desc_title = "✨ 황금비 (Golden Ratio, 1.618...)"
+            desc_text = "신용카드, 파르테논 신전, 모나리자의 공통점? 바로 1:1.618 비율이 숨어있다는 것! 인간이 가장 편안함을 느끼는 비율이래요."
+        else:
+            nums = "142857142857142857142857142857142857142857142857142" # 순환소수
+            desc_title = "🔄 순환소수 (1/7, 0.142857...)"
+            desc_text = "1 나누기 7을 해보세요. 142857 여섯 숫자가 도돌이표처럼 계속 반복되죠? 음악으로 치면 '무한 반복 재생' 구간입니다."
+
+        # 설명 박스 출력
+        st.markdown(f"""
+        <div class='easy-desc'>
+            <b>{desc_title}</b><br>
+            {desc_text}
+        </div>
+        """, unsafe_allow_html=True)
+
+    with tab2:
+        user_in = st.text_input("숫자를 입력하세요 (예: 20250101)", placeholder="20250101")
+        if user_in: nums = ''.join(filter(str.isdigit, user_in))
+        elif 'nums' not in locals(): nums = "314159"
+
+    st.write("")
+    bpm = st.slider("🎛️ BPM (빠르기)", 60, 160, 110)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_R:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("### 🎚️ 비주얼라이저 & 재생")
+    
+    if nums:
+        # 네온 스타일 차트
+        digits = [int(d) for d in nums[:25] if d != '0']
+        chart_data = pd.DataFrame({'Time': range(len(digits)), 'Note': digits})
+        
+        c = alt.Chart(chart_data).mark_area(
+            line={'color':'#4facfe'},
+            color=alt.Gradient(
+                gradient='linear',
+                stops=[alt.GradientStop(color='#4facfe', offset=0),
+                       alt.GradientStop(color='rgba(79, 172, 254, 0)', offset=1)],
+                x1=1, x2=1, y1=1, y2=0
+            )
+        ).encode(
+            x=alt.X('Time', axis=None),
+            y=alt.Y('Note', axis=None, scale=alt.Scale(domain=[0, 10]))
+        ).properties(height=200).configure_view(strokeWidth=0)
+        
+        st.altair_chart(c, use_container_width=True)
+        st.caption(f"연주 데이터: {nums[:15]}...")
+        
+        st.write("")
+        
+        # 재생 버튼
+        if st.button("▶️ 연주 시작 (PLAY)", use_container_width=True):
+            
+            with st.container():
+                # 
+                # 사이버펑크 느낌의 오디오 파형 GIF
+                st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm14bWszcGd5eHZ4bzF5eGZ5eGZ5eGZ5eGZ5eGZ5eGZ5/tq7Q6J5Xq3H5C/giphy.gif", 
+                         caption="System Processing...", use_container_width=True)
+            
+            with st.spinner("숫자들을 악보로 변환 중입니다... 🎼"):
+                audio_data = numbers_to_epic_music(nums, bpm)
+                virtual_file = io.BytesIO()
+                write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
+                
+                st.audio(virtual_file, format='audio/wav')
+                st.success("연주가 시작되었습니다! 볼륨을 높여보세요.")
+                
+    else:
+        st.warning("숫자가 입력되지 않았습니다.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
