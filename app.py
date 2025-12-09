@@ -6,91 +6,110 @@ import pandas as pd
 import altair as alt
 
 # --- 1. 페이지 설정 ---
-st.set_page_config(page_title="Math Carol Class", page_icon="🎄", layout="wide")
+st.set_page_config(page_title="Math Carol: Black Label", page_icon="🎄", layout="wide")
 
-# --- 2. 🎨 Cozy Textbook Design (따뜻한 교과서 스타일) ---
+# --- 2. 🎨 Modern Luxury Design (CSS) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+    /* [Font] Apple/Toss 스타일의 현대적인 고딕 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     
-    /* [전체 배경] */
+    /* [Global Theme] Deep Matte Black */
     .stApp {
-        background-color: #FDFBF7 !important;
-        color: #4A4A4A !important;
-        font-family: 'Noto Sans KR', sans-serif !important;
+        background-color: #050505 !important;
+        font-family: 'Pretendard', -apple-system, system-ui, sans-serif !important;
+        color: #FFFFFF !important;
     }
 
-    /* [눈 효과] */
-    .snowflake { position: fixed; top: -10px; z-index: 99; color: #D4AF37; opacity: 0.4; font-size: 1.2em; animation: fall linear infinite; }
-    @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
-
-    /* [헤더] */
-    .header-box {
-        text-align: center; padding: 40px 0;
-        background: url('https://www.transparenttextures.com/patterns/snow.png'), linear-gradient(to right, #C0392B, #D35400);
-        border-radius: 0 0 30px 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 40px; color: white;
+    /* [Snow Effect] 아주 작고 느린 미세 먼지 같은 눈 */
+    .snowflake { 
+        position: fixed; top: -10px; z-index: 0; 
+        color: rgba(255, 255, 255, 0.3); 
+        font-size: 0.5rem; /* 아주 작게 */
+        animation: fall linear infinite; 
     }
-    .main-title {
-        font-family: 'Gaegu', cursive; font-size: 4.5rem; font-weight: 700;
-        text-shadow: 2px 2px 0px #8E2800; margin: 0;
-    }
-    .sub-title { font-size: 1.2rem; margin-top: 10px; opacity: 0.9; font-weight: 400; }
-
-    /* [카드] */
-    .edu-card {
-        background: #FFFFFF;
-        border: 2px solid #EAEAEA;
-        border-top: 5px solid #27AE60;
-        border-radius: 15px; padding: 30px;
-        box-shadow: 5px 5px 15px rgba(0,0,0,0.03);
-        height: 100%;
+    @keyframes fall { 
+        0% { transform: translateY(-10vh); opacity: 0; } 
+        20% { opacity: 0.8; }
+        100% { transform: translateY(110vh); opacity: 0; } 
     }
 
-    /* [선생님 노트] */
-    .teacher-note {
-        background-color: #F1F8E9;
-        border-left: 5px solid #7CB342;
-        padding: 20px; border-radius: 10px;
-        margin-top: 20px; font-size: 0.95rem; line-height: 1.7; color: #33691E;
+    /* [Header] Minimal Typography */
+    .hero-container {
+        padding: 60px 0 40px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 40px;
     }
-    .note-label { font-weight: 900; color: #558B2F; display: block; margin-bottom: 5px; }
+    .hero-title {
+        font-size: 3.5rem; font-weight: 800; letter-spacing: -1px;
+        background: linear-gradient(90deg, #FFFFFF, #888888);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+    }
+    .hero-sub {
+        font-size: 1rem; color: #666; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+    }
 
-    /* [탭] */
-    div[data-baseweb="tab-list"] { gap: 10px; justify-content: center; }
+    /* [Card] Dark Glassmorphism */
+    .glass-card {
+        background: rgba(20, 20, 20, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08); /* 초박형 테두리 */
+        border-radius: 20px; padding: 40px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(20px);
+    }
+
+    /* [Text Fix] 가독성 강제 확보 */
+    h1, h2, h3, h4, strong { color: #FFFFFF !important; }
+    p, li, span, div { color: #CCCCCC; } /* 본문은 연한 회색 */
+    .desc-box { 
+        margin-top: 20px; padding-top: 20px; 
+        border-top: 1px solid rgba(255,255,255,0.1); 
+        font-size: 0.95rem; line-height: 1.7; color: #999;
+    }
+    .desc-box b { color: #fff; font-weight: 600; }
+
+    /* [Badge] Pill Shape */
+    .badge {
+        display: inline-block; padding: 6px 12px; border-radius: 100px;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+        text-transform: uppercase; margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #fff;
+    }
+
+    /* [Tabs] Segmented Control Style */
+    div[data-baseweb="tab-list"] { background: transparent !important; gap: 20px; border-bottom: 1px solid #222; }
     button[data-baseweb="tab"] {
-        background-color: #EEE !important; border-radius: 10px 10px 0 0 !important;
-        border: none !important; color: #777 !important; font-weight: bold; font-size: 1rem;
+        background: transparent !important; border: none !important; color: #555 !important;
+        font-weight: 600; font-size: 1rem; padding-bottom: 15px;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        background-color: #C0392B !important; color: #FFF !important;
+        color: #FFF !important; border-bottom: 2px solid #FFF !important;
     }
 
-    /* [버튼] */
+    /* [Button] Minimal & Solid */
     .stButton>button {
-        background: linear-gradient(to bottom, #27AE60, #219150) !important;
-        color: white !important; border: 2px solid #1E8449 !important;
-        border-radius: 50px; height: 60px; font-size: 1.3rem; font-weight: 800; width: 100%;
-        box-shadow: 0 5px 0 #145A32; transition: all 0.2s;
+        background-color: #FFFFFF !important; color: #000000 !important;
+        border: none; border-radius: 12px; height: 56px; font-weight: 700; font-size: 1rem;
+        transition: all 0.2s ease; width: 100%;
     }
-    .stButton>button:hover { transform: translateY(2px); box-shadow: 0 2px 0 #145A32; }
-    .stButton>button:active { transform: translateY(5px); box-shadow: none; }
+    .stButton>button:hover {
+        background-color: #E0E0E0 !important; transform: scale(1.01);
+    }
 
-    /* [입력창] */
+    /* [Input] Dark Input */
     .stTextInput input {
-        border: 2px solid #BDC3C7; border-radius: 10px; text-align: center; color: #2C3E50;
+        background-color: #111 !important; border: 1px solid #333 !important; color: #fff !important;
+        border-radius: 12px; text-align: center;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 눈 효과
+# 눈 효과 (미세하게)
 def create_snow():
-    snow_html = "".join([f'<div class="snowflake" style="left:{np.random.randint(0,100)}vw; animation-duration:{np.random.uniform(5, 15)}s; animation-delay:{np.random.uniform(0, 5)}s;">❄</div>' for _ in range(30)])
+    snow_html = "".join([f'<div class="snowflake" style="left:{np.random.randint(0,100)}vw; animation-duration:{np.random.uniform(10, 30)}s; animation-delay:{np.random.uniform(0, 10)}s;">.</div>' for _ in range(60)])
     st.markdown(snow_html, unsafe_allow_html=True)
 create_snow()
 
-# --- 3. 🎹 Audio Engine ---
+# --- 3. 🎹 Audio Engine (안정성 최우선) ---
 
 def generate_wave(freq, duration, type="bell"):
     sr = 44100; num_samples = int(sr * duration); t = np.linspace(0, duration, num_samples, False)
@@ -109,12 +128,13 @@ def apply_envelope(wave, duration, type="short"):
     length = len(wave)
     if type == "short": env = np.exp(np.linspace(0, -5, length))
     else:
-        att = int(length * 0.2); rel = int(length * 0.3); sus = length - att - rel; 
+        att = int(length*0.2); rel = int(length*0.3); sus = length - att - rel
         if sus < 0: sus = 0
-        env = np.concatenate([np.linspace(0, 1, att), np.full(sus, 1.0), np.linspace(1, 0, rel)])
+        env = np.concatenate([np.linspace(0,1,att), np.full(sus,1.0), np.linspace(1,0,rel)])
     env = match_len(env, length); return wave * env
 
 def compose_music(nums, bpm, style):
+    # Scale: C Major / D Major / A Minor
     if style == "joyful": scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
     elif style == "waltz": scale = [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99]
     else: scale = [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]
@@ -151,150 +171,137 @@ def compose_music(nums, bpm, style):
     full = np.concatenate(full_track); delay = int(44100 * 0.4); res = np.zeros(len(full) + delay); res[:len(full)] += full; res[delay:] += full * 0.4
     m = np.max(np.abs(res)); return res / m * 0.95 if m > 0 else res
 
-# --- 4. UI 렌더링 ---
+# --- 4. UI Rendering ---
 
-def render_class_tab(key_prefix, title, subtitle, math_note, default_nums, initial_style, initial_color):
+def render_tab_content(key, badge_text, title, desc, default_nums, style):
     c1, c2 = st.columns([1, 1.2], gap="large")
     
+    # [Left: Controller & Info]
     with c1:
         st.markdown(f"""
-        <div class="edu-card">
-            <h2 style="color:#C0392B; margin-bottom:5px;">{title}</h2>
-            <div style="color:#7F8C8D; font-weight:bold; margin-bottom:20px;">{subtitle}</div>
-            
-            <div class="teacher-note">
-                <span class="note-label">🧑‍🏫 수학 선생님의 Tip</span>
-                {math_note}
-            </div>
-            <br>
+        <div class="glass-card">
+            <span class="badge">{badge_text}</span>
+            <h2 style="margin-bottom: 10px;">{title}</h2>
+            <div class="desc-box">{desc}</div>
+        </div>
         """, unsafe_allow_html=True)
         
-        # [NEW] 4번째 탭(자유 탐구)일 경우 입력창 + 스타일 선택 옵션 추가
         final_nums = default_nums
-        current_style = initial_style
-        current_color = initial_color
+        
+        # 4번째 탭의 경우 입력창 활성화
+        if key == "t4":
+            st.markdown('<div class="glass-card" style="padding:20px;">', unsafe_allow_html=True)
+            col_in1, col_in2 = st.columns([2, 1])
+            with col_in1:
+                user_input = st.text_input("Number Input", value="", placeholder="12251225", label_visibility="collapsed", key=f"in_{key}")
+                if user_input: final_nums = "".join(filter(str.isdigit, user_input))
+            with col_in2:
+                # 스타일 선택 라디오
+                sel_style = st.selectbox("Style", ["Joyful", "Waltz", "Holy"], key=f"sel_{key}", label_visibility="collapsed")
+                if sel_style: style = sel_style.lower()
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        if key_prefix == "t4":
-            st.markdown("##### 1️⃣ 숫자 입력")
-            user_input = st.text_input("", value="", placeholder="12251225", key=f"in_{key_prefix}", label_visibility="collapsed")
-            if user_input: final_nums = "".join(filter(str.isdigit, user_input))
-            
-            st.markdown("##### 2️⃣ 캐롤 스타일 선택")
-            style_option = st.radio(
-                "스타일을 골라보세요", 
-                ["🔔 Joyful (경쾌한 셔플)", "💃 Waltz (우아한 3박자)", "👼 Holy (웅장한 합창)"],
-                label_visibility="collapsed",
-                key=f"style_{key_prefix}"
-            )
-            
-            # 선택에 따라 스타일과 색상 변경
-            if "Joyful" in style_option:
-                current_style = "joyful"
-                current_color = "reds"
-            elif "Waltz" in style_option:
-                current_style = "waltz"
-                current_color = "greens"
-            else:
-                current_style = "holy"
-                current_color = "oranges"
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
+    # [Right: Visualizer]
     with c2:
-        st.markdown('<div class="edu-card" style="text-align:center;">', unsafe_allow_html=True)
-        st.markdown("### 🎄 Melody Tree Visualization")
+        st.markdown('<div class="glass-card" style="text-align:center;">', unsafe_allow_html=True)
         
         if final_nums:
+            # [Visual] 미디어 아트 스타일 트리 (Golden Dots)
             digits = [int(d) for d in final_nums[:45] if d != '0']
             tree_data = []
             
-            # 트리 구조 생성
-            current_idx = 0
-            layer = 1
-            max_layers = 10 
-            
-            while current_idx < len(digits) and layer <= max_layers:
-                nodes_in_layer = layer
-                for i in range(nodes_in_layer):
-                    if current_idx >= len(digits): break
-                    note = digits[current_idx]
-                    y_pos = 10 - layer 
-                    width_spread = layer * 1.5
-                    x_pos = np.linspace(-width_spread/2, width_spread/2, nodes_in_layer)[i]
-                    size = note * 50 + 100
-                    tree_data.append({'x': x_pos, 'y': y_pos, 'note': note, 'size': size})
-                    current_idx += 1
+            idx = 0; layer = 1; max_layers = 10
+            while idx < len(digits) and layer <= max_layers:
+                nodes = layer
+                for i in range(nodes):
+                    if idx >= len(digits): break
+                    # 좌표 계산
+                    width = layer * 1.5
+                    x = np.linspace(-width/2, width/2, nodes)[i]
+                    y = 10 - layer # 위에서 아래로
+                    
+                    # 데이터 추가
+                    tree_data.append({
+                        'x': x, 'y': y, 'note': digits[idx], 
+                        'size': digits[idx]*30 + 50, # 크기 변동
+                        'opacity': digits[idx]/10 + 0.1
+                    })
+                    idx += 1
                 layer += 1
                 
             df = pd.DataFrame(tree_data)
-            star = pd.DataFrame({'x': [0], 'y': [10], 'note': [10], 'size': [600]})
+            star = pd.DataFrame({'x': [0], 'y': [10], 'note': [10], 'size': [400], 'opacity': [1]})
             
-            # 차트 그리기 (색상 동적 적용)
-            base = alt.Chart(df).mark_circle(opacity=0.9, stroke='white', strokeWidth=1.5).encode(
+            # 차트: 샴페인 골드 & 화이트 컬러
+            colors = {'joyful': ['#FF4B4B', '#FFD700'], 'waltz': ['#2ECC71', '#F1C40F'], 'holy': ['#3498DB', '#FFFFFF']}
+            curr_colors = colors.get(style, ['#FFFFFF', '#FFD700'])
+            
+            base = alt.Chart(df).mark_circle(stroke='white', strokeWidth=1).encode(
                 x=alt.X('x', axis=None), y=alt.Y('y', axis=None),
                 size=alt.Size('size', legend=None),
-                color=alt.Color('note', scale=alt.Scale(scheme=current_color), legend=None),
+                color=alt.Color('note', scale=alt.Scale(range=curr_colors), legend=None),
+                opacity=alt.Opacity('opacity', legend=None),
                 tooltip=['note']
             )
-            top = alt.Chart(star).mark_point(shape='star', fill='#F1C40F', size=600, stroke='none').encode(x='x', y='y')
+            top = alt.Chart(star).mark_point(shape='star', fill='#FFF', size=400, stroke='none').encode(x='x', y='y')
             
-            final_chart = (base + top).properties(height=400).configure_view(strokeWidth=0)
+            final_chart = (base + top).properties(height=350, background='transparent').configure_view(strokeWidth=0)
             st.altair_chart(final_chart, use_container_width=True)
-            st.caption(f"▲ 숫자들이 {layer-1}층짜리 크리스마스 트리를 만들었어요!")
 
         st.write("")
-        # 버튼에 현재 스타일 표시
-        if st.button(f"🔔 연주 시작 ({current_style.title()} Ver.)", key=f"btn_{key_prefix}"):
-            with st.spinner("캐롤 편곡 중..."):
-                bpm = 120 if current_style == "joyful" else 100 if current_style == "waltz" else 80
-                audio = compose_music(final_nums, bpm, current_style)
+        # 재생 버튼
+        if st.button(f"PLAY AUDIO", key=f"btn_{key}"):
+            with st.spinner("Rendering Audio..."):
+                bpm = 120 if style == "joyful" else 100 if style == "waltz" else 80
+                audio = compose_music(final_nums, bpm, style)
                 if audio is not None:
                     virtual_file = io.BytesIO()
                     write(virtual_file, 44100, (audio * 32767).astype(np.int16))
                     st.audio(virtual_file, format='audio/wav')
-                    
+        
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Main Page ---
+# --- Main Layout ---
 st.markdown("""
-<div class="header-box">
-    <div class="main-title">Math Christmas Carol</div>
-    <div class="sub-title">중학교 수학으로 꾸미는 나만의 멜로디 트리</div>
+<div class="hero-container">
+    <div class="hero-title">MATH CAROL</div>
+    <div class="hero-sub">2025 WINTER COLLECTION • EDUCATIONAL EDITION</div>
 </div>
 """, unsafe_allow_html=True)
 
-t1, t2, t3, t4 = st.tabs(["🔴 중1 (도형)", "🟢 중2 (수)", "🟡 중3 (무리수)", "🟣 자유 탐구"])
+# 탭 구성
+t1, t2, t3, t4 = st.tabs(["GRADE 1", "GRADE 2", "GRADE 3", "FREE PLAY"])
 
 with t1:
-    render_class_tab("t1", "원주율 (Pi) 징글벨", "중1-2 도형의 성질", 
+    render_tab_content("t1", "중1 도형", "Circular Pi (π)", 
         """
-        <b>"원은 완벽한 대칭을 가진 도형이야."</b><br>
-        원의 둘레를 지름으로 나눈 값인 <b>원주율(π)</b>은 3.141592... 처럼 숫자가 불규칙하게 영원히 이어져. 
-        이 불규칙함이 <b>경쾌한 셔플 리듬(Joyful)</b>이 되면, 마치 눈 내리는 날 썰매를 타는 듯 신난단다!
-        """, "314159265358979323846264338327950288419716939937510", "joyful", "reds")
+        <b>원주율(π)의 불규칙한 아름다움</b><br>
+        원은 완벽한 대칭을 이루지만, 그 비율인 파이(3.141592...)는 끝없이 불규칙합니다. 
+        이 예측 불가능한 숫자의 배열을 <b>경쾌한 셔플 리듬(Joyful)</b>으로 해석했습니다.
+        """, "314159265358979323846264338327950288419716939937510", "joyful")
 
 with t2:
-    render_class_tab("t2", "순환소수 왈츠", "중2-1 유리수와 순환소수", 
+    render_tab_content("t2", "중2 유리수", "Decimal Waltz", 
         """
-        <b>"반복되는 것에도 규칙이 있단다."</b><br>
-        1 나누기 7을 해볼까? <b>0.142857...</b> 처럼 여섯 개의 숫자가 도돌이표처럼 계속 반복되지?
-        이런 규칙적인 숫자는 <b>우아한 3박자 왈츠(Waltz)</b> 춤곡과 정말 잘 어울려.
-        """, "142857142857142857142857142857142857142857", "waltz", "greens")
+        <b>순환소수의 규칙적인 춤</b><br>
+        1/7 = 0.142857... 처럼 일정한 구간이 반복되는 순환소수는 수학적인 안정감을 줍니다.
+        이 규칙성을 <b>우아한 3박자 왈츠(Waltz)</b> 리듬에 담았습니다.
+        """, "142857142857142857142857142857142857142857", "waltz")
 
 with t3:
-    render_class_tab("t3", "루트2의 거룩한 밤", "중3-1 제곱근과 실수", 
+    render_tab_content("t3", "중3 제곱근", "Square Root Harmony", 
         """
-        <b>"세상의 비밀을 담은 숫자야."</b><br>
-        제곱해서 2가 되는 수, <b>루트2(√2)</b>는 인류가 처음 발견한 무리수란다.
-        끝없이 이어지는 깊고 신비로운 숫자의 배열을 <b>웅장한 합창(Holy)</b> 소리로 표현해봤어.
-        """, "141421356237309504880168872420969807856967187537694", "holy", "oranges")
+        <b>무리수의 깊은 울림</b><br>
+        정사각형의 대각선 길이인 루트2(1.414...)는 인류가 처음 발견한 무리수입니다.
+        비순환 무한소수의 깊이감을 <b>성스러운 합창(Holy)</b> 사운드로 표현했습니다.
+        """, "141421356237309504880168872420969807856967187537694", "holy")
 
 with t4:
-    render_class_tab("t4", "나만의 숫자 캐롤", "자유 학기제 탐구 활동", 
+    render_tab_content("t4", "자유 탐구", "Create Your Carol", 
         """
-        <b>"어떤 음악이 나올지 실험해봐!"</b><br>
-        숫자를 입력하고 아래에서 <b>음악 스타일(셔플/왈츠/합창)</b>을 직접 골라보렴.
-        스타일을 바꿀 때마다 트리의 색깔과 분위기가 확 달라지는 걸 볼 수 있을 거야.
-        """, "12251225", "joyful", "purples")
+        <b>나만의 숫자로 만드는 음악</b><br>
+        생일, 기념일 등 소중한 숫자를 입력해보세요. 
+        수학적 알고리즘이 당신만을 위한 유일한 캐롤을 작곡해 드립니다.
+        """, "12251225", "joyful")
 
-st.markdown("<br><hr><div style='text-align:center; color:#999;'>Designed for Joyful Math Education 🎁</div>", unsafe_allow_html=True)
+st.markdown("<br><br><div style='text-align:center; color:#444; font-size:0.8rem;'>Designed by AI • 2025 Education Tech</div>", unsafe_allow_html=True)
