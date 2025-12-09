@@ -6,9 +6,9 @@ import pandas as pd
 import altair as alt
 
 # --- 1. 페이지 설정 ---
-st.set_page_config(page_title="Math Symphony: Middle School", page_icon="🏫", layout="wide")
+st.set_page_config(page_title="Math Symphony", page_icon="🎻", layout="wide")
 
-# --- 2. 디자인 (CSS) ---
+# --- 2. 디자인 & CSS 애니메이션 (핵심!) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700&display=swap');
@@ -54,6 +54,7 @@ st.markdown("""
         color: #fff !important; border: none; height: 65px; border-radius: 12px;
         font-size: 1.3rem; font-weight: 800;
         box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        width: 100%;
     }
     
     /* 입력창 */
@@ -75,49 +76,67 @@ st.markdown("""
         color: #e6edf3;
     }
     .easy-desc b { color: #4facfe; }
+
+    /* [NEW] CSS로 만든 움직이는 비주얼라이저 (절대 안깨짐) */
+    .visualizer-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        height: 60px;
+        gap: 5px;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+    .bar {
+        width: 8px;
+        background: linear-gradient(to top, #4facfe, #00f2fe);
+        border-radius: 5px;
+        animation: bounce 1s infinite ease-in-out;
+    }
+    .bar:nth-child(1) { height: 20px; animation-delay: 0.0s; }
+    .bar:nth-child(2) { height: 40px; animation-delay: 0.1s; }
+    .bar:nth-child(3) { height: 50px; animation-delay: 0.2s; }
+    .bar:nth-child(4) { height: 30px; animation-delay: 0.3s; }
+    .bar:nth-child(5) { height: 20px; animation-delay: 0.4s; }
+    .bar:nth-child(6) { height: 45px; animation-delay: 0.2s; }
+    .bar:nth-child(7) { height: 55px; animation-delay: 0.1s; }
+    .bar:nth-child(8) { height: 35px; animation-delay: 0.3s; }
+    .bar:nth-child(9) { height: 25px; animation-delay: 0.0s; }
+    .bar:nth-child(10) { height: 40px; animation-delay: 0.2s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
+        50% { transform: scaleY(1.2); opacity: 1; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (길이 보정 로직 강화) ---
-
+# --- 3. 오디오 엔진 ---
 def generate_wave(freq, duration, wave_type="sine"):
     sample_rate = 44100
     num_samples = int(sample_rate * duration)
     t = np.linspace(0, duration, num_samples, False)
-    
     if wave_type == "sine": return np.sin(2 * np.pi * freq * t)
     elif wave_type == "saw": return 0.5 * (2 * (freq * t - np.floor(freq * t + 0.5)))
     elif wave_type == "pad": return np.sin(2 * np.pi * freq * t) + 0.5 * np.sin(2 * np.pi * freq * 1.01 * t)
     return np.zeros(num_samples)
 
 def match_length(wave, target_len):
-    """파형 길이를 강제로 맞춰주는 함수 (에러 방지 핵심)"""
-    current_len = len(wave)
-    if current_len == target_len:
-        return wave
-    elif current_len > target_len:
-        return wave[:target_len] # 길면 자름
-    else:
-        # 짧으면 뒤에 0을 붙여서 늘림
-        return np.pad(wave, (0, target_len - current_len), 'constant')
+    if len(wave) == target_len: return wave
+    elif len(wave) > target_len: return wave[:target_len]
+    else: return np.pad(wave, (0, target_len - len(wave)), 'constant')
 
 def apply_envelope(wave, duration, attack_ratio=0.1, release_ratio=0.4):
     total_len = len(wave)
     attack = int(total_len * attack_ratio)
     release = int(total_len * release_ratio)
     sustain = total_len - attack - release
-    
-    # 예외 처리: 길이가 너무 짧을 경우
     if sustain < 0:
         attack = total_len // 2
         release = total_len - attack
         sustain = 0
-
     env = np.concatenate([np.linspace(0, 1, attack), np.full(sustain, 1.0), np.linspace(1, 0, release)])
-    
-    # Envelope 길이도 wave와 강제로 맞춤
-    env = match_length(env, total_len)
-    return wave * env
+    return wave * match_length(env, total_len)
 
 def apply_chorus(wave):
     chorus1 = np.interp(np.arange(0, len(wave), 0.995), np.arange(0, len(wave)), wave)
@@ -146,34 +165,27 @@ def generate_melody_phrase(digit, bpm):
     if digit not in phrases or digit == '0': return np.zeros(int(44100 * quarter_note * 2))
     indices, durations, bass_idx, chord_indices = phrases[digit]
     
-    # 1. Melody 생성
     melody_pieces = []
     for idx, dur in zip(indices, durations):
         tone = generate_wave(scale[idx], dur, "saw")
         tone = apply_envelope(tone, dur, 0.05, 0.2)
         melody_pieces.append(tone)
-    
     melody_wave = np.concatenate(melody_pieces)
-    target_len = len(melody_wave) # [기준 길이]
+    target_len = len(melody_wave)
     
-    # 2. Pad 생성 (기준 길이에 맞춤)
     pad_wave = np.zeros(target_len)
     total_dur = sum(durations)
     for idx in chord_indices:
         tone = generate_wave(scale[idx], total_dur, "pad")
-        tone = match_length(tone, target_len) # 강제 맞춤
-        pad_wave += tone
-    
+        pad_wave += match_length(tone, target_len)
     pad_wave = apply_envelope(pad_wave, total_dur, 0.3, 0.5)
     pad_wave = apply_chorus(pad_wave) * 0.4
-    pad_wave = match_length(pad_wave, target_len) # 코러스 후 다시 맞춤
+    pad_wave = match_length(pad_wave, target_len)
     
-    # 3. Bass 생성 (기준 길이에 맞춤)
     bass_wave = generate_wave(scale[bass_idx]*0.5, total_dur, "sine")
-    bass_wave = match_length(bass_wave, target_len) # 강제 맞춤
+    bass_wave = match_length(bass_wave, target_len)
     bass_wave = apply_envelope(bass_wave, total_dur, 0.1, 0.3) * 0.6
     
-    # 4. Mixing
     mix = melody_wave + pad_wave + bass_wave
     mx = np.max(np.abs(mix))
     return mix / mx * 0.9 if mx > 0 else mix
@@ -186,6 +198,12 @@ def numbers_to_epic_music(number_str, bpm):
 
 st.markdown('<div class="neo-title">MATH SYMPHONY</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">중학교 수학책 속에 숨겨진 웅장한 오케스트라</div>', unsafe_allow_html=True)
+
+# [FIX] Session State 초기화 (음악 저장용)
+if 'audio_file' not in st.session_state:
+    st.session_state.audio_file = None
+if 'is_generated' not in st.session_state:
+    st.session_state.is_generated = False
 
 col_L, col_R = st.columns([1, 1.4], gap="large")
 
@@ -226,15 +244,10 @@ with col_L:
             desc_title = "🔄 순환소수 (1/7, 0.142857...)"
             desc_text = "1 나누기 7을 해보세요. 142857 여섯 숫자가 도돌이표처럼 계속 반복되죠? 음악으로 치면 '무한 반복 재생' 구간입니다."
 
-        st.markdown(f"""
-        <div class='easy-desc'>
-            <b>{desc_title}</b><br>
-            {desc_text}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='easy-desc'><b>{desc_title}</b><br>{desc_text}</div>", unsafe_allow_html=True)
 
     with tab2:
-        user_in = st.text_input("숫자를 입력하세요 (예: 20250101)", placeholder="20250101")
+        user_in = st.text_input("숫자를 입력하세요", placeholder="20250101")
         if user_in: nums = ''.join(filter(str.isdigit, user_in))
         elif 'nums' not in locals(): nums = "314159"
 
@@ -261,26 +274,38 @@ with col_R:
         ).encode(
             x=alt.X('Time', axis=None),
             y=alt.Y('Note', axis=None, scale=alt.Scale(domain=[0, 10]))
-        ).properties(height=200).configure_view(strokeWidth=0)
+        ).properties(height=150).configure_view(strokeWidth=0)
         
         st.altair_chart(c, use_container_width=True)
-        st.caption(f"연주 데이터: {nums[:15]}...")
         
         st.write("")
         
+        # 버튼을 누르면 계산 후 Session State에 저장
         if st.button("▶️ 연주 시작 (PLAY)", use_container_width=True):
-            
-            with st.container():
-                st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm14bWszcGd5eHZ4bzF5eGZ5eGZ5eGZ5eGZ5eGZ5eGZ5/tq7Q6J5Xq3H5C/giphy.gif", 
-                         caption="System Processing...", use_container_width=True)
-            
-            with st.spinner("숫자들을 악보로 변환 중입니다... 🎼"):
+            with st.spinner("악보를 그리는 중... 🎼"):
                 audio_data = numbers_to_epic_music(nums, bpm)
+                
+                # 가상의 파일로 저장
                 virtual_file = io.BytesIO()
                 write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
                 
-                st.audio(virtual_file, format='audio/wav')
-                st.success("연주가 시작되었습니다! 볼륨을 높여보세요.")
+                # 세션에 저장 (이래야 리셋 안됨!)
+                st.session_state.audio_file = virtual_file
+                st.session_state.is_generated = True
+
+        # [FIX] 저장된 음악과 비주얼라이저 표시
+        if st.session_state.is_generated:
+            # 1. CSS 애니메이션 비주얼라이저 (절대 안깨짐)
+            st.markdown("""
+            <div class="visualizer-container">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 2. 오디오 플레이어
+            st.audio(st.session_state.audio_file, format='audio/wav')
+            st.success("Now Playing... 🎵")
                 
     else:
         st.warning("숫자가 입력되지 않았습니다.")
