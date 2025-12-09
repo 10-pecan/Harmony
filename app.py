@@ -5,256 +5,259 @@ import io
 import pandas as pd
 import altair as alt
 
-# --- 1. 페이지 설정 ---
-st.set_page_config(page_title="Math Symphony", page_icon="🎻", layout="wide")
+# --- 1. 페이지 설정 (세련된 다크 테마) ---
+st.set_page_config(page_title="Neo-Symphony", page_icon="🎹", layout="wide")
 
-# --- 2. [강력한 UI 수정] 글씨가 무조건 잘 보이게 설정 ---
+# --- 2. 강력한 디자인 업그레이드 (CSS) ---
 st.markdown("""
 <style>
-    /* [핵심] 배경은 무조건 흰색, 글씨는 무조건 진한 남색으로 고정 */
-    .stApp {
-        background-color: #FFFFFF !important;
-    }
+    /* [폰트 & 기본 배경] 어둡고 세련되게 */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Pretendard:wght@300;500&display=swap');
     
-    /* 모든 텍스트 강제 색상 지정 (다크모드 무시) */
-    html, body, h1, h2, h3, h4, h5, h6, p, span, div, label, li {
-        color: #1a237e !important; /* 진한 네이비 */
+    .stApp {
+        background-color: #0d1117 !important; /* 깊은 우주색 */
+        color: #c9d1d9 !important;
         font-family: 'Pretendard', sans-serif !important;
     }
 
-    /* [탭/라디오 버튼 이슈 해결] */
-    /* 선택되지 않은 탭 */
-    button[data-baseweb="tab"] {
-        background-color: #f5f5f5 !important;
-        color: #666 !important;
-        border: 1px solid #ddd !important;
-    }
-    /* 선택된 탭 (배경 진하게, 글씨 하얗게 -> 잘 보임) */
-    button[data-baseweb="tab"][aria-selected="true"] {
-        background-color: #1a237e !important; /* 진한 네이비 */
-        color: #FFD700 !important; /* 황금색 글씨 */
-        border: none !important;
-        font-weight: bold !important;
-    }
-    
-    /* 라디오 버튼 선택 시 */
-    div[role="radiogroup"] label > div:first-child {
-        background-color: #fff !important;
-    }
-    
-    /* 제목 스타일 (오케스트라 느낌) */
-    .grand-title {
-        font-family: 'Times New Roman', serif !important;
-        font-size: 3.5rem;
-        font-weight: bold;
-        color: #1a237e !important;
+    h1, h2, h3, label { color: #ffffff !important; }
+    p, span, div { color: #c9d1d9; }
+
+    /* [네온 타이틀] */
+    .neo-title {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 4rem;
+        font-weight: 800;
         text-align: center;
-        margin-bottom: 5px;
-        text-shadow: 2px 2px 0px #FFD700; /* 황금 그림자 */
+        background: linear-gradient(to right, #00f260, #0575e6); /* 네온 그린/블루 */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 20px rgba(5, 117, 230, 0.5);
     }
     .sub-title {
-        text-align: center;
-        color: #555 !important;
-        font-style: italic;
-        margin-bottom: 40px;
+        text-align: center; color: #8b949e !important; margin-bottom: 40px;
     }
 
-    /* 카드 디자인 (고급스러운 테두리) */
-    .royal-card {
-        background-color: #FAFAFA;
-        border: 2px solid #1a237e;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 5px 5px 0px rgba(26, 35, 126, 0.1);
-        margin-bottom: 20px;
+    /* [글래스모피즘 카드 UI] */
+    .glass-card {
+        background: rgba(22, 27, 34, 0.7); /* 반투명 배경 */
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        backdrop-filter: blur( 10px );
+        -webkit-backdrop-filter: blur( 10px );
+        padding: 30px;
+        margin-bottom: 25px;
     }
 
-    /* 버튼 스타일 (지휘자 느낌) */
+    /* [탭 스타일 완전 정복] - 드디어 해결! */
+    /* 탭 컨테이너 배경 투명하게 */
+    div[data-baseweb="tab-list"] { background-color: transparent !important; }
+    
+    /* 선택 안 된 탭 */
+    button[data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: #8b949e !important;
+        border: none !important;
+        font-weight: 500 !important;
+    }
+    
+    /* 선택된 탭 (네온 효과) */
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background-color: rgba(5, 117, 230, 0.1) !important; /* 연한 네온 배경 */
+        color: #58a6ff !important; /* 밝은 네온 블루 글씨 */
+        border-bottom: 3px solid #58a6ff !important;
+        font-weight: bold !important;
+    }
+
+    /* [입력창 & 버튼] */
+    .stTextInput input {
+        background-color: #0d1117 !important;
+        color: #fff !important;
+        border: 1px solid #30363d !important;
+        border-radius: 10px !important;
+    }
     .stButton>button {
-        background: linear-gradient(135deg, #1a237e, #283593) !important;
-        color: #FFD700 !important; /* 황금색 글씨 */
-        border: 2px solid #FFD700 !important;
-        border-radius: 5px;
-        height: 60px;
-        font-size: 1.2rem;
-        font-weight: bold;
+        background: linear-gradient(45deg, #00f260, #0575e6) !important;
+        color: #fff !important;
+        border: none;
+        height: 60px; font-size: 1.2rem; font-weight: bold;
+        box-shadow: 0 0 15px rgba(5, 117, 230, 0.4);
         transition: 0.3s;
     }
     .stButton>button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
-    }
-    
-    /* 입력창 테두리 */
-    .stTextInput input {
-        border: 2px solid #1a237e !important;
-        border-radius: 5px !important;
-        color: #1a237e !important;
-        background-color: #fff !important;
+        box-shadow: 0 0 25px rgba(5, 117, 230, 0.7); transform: scale(1.02);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. 오디오 엔진 (Grand Orchestra Algorithm) ---
-# 단순한 사인파가 아니라, 여러 파형을 합쳐서 '현악기 앙상블' 소리를 만듭니다.
+# --- 3. 오디오 엔진 (Epic & Melodic) ---
+# 숫자 하나에 '멜로디 프레이즈'를 매핑하고, 화음과 코러스를 쌓습니다.
 
-def generate_orchestra_note(freq, duration, sample_rate=44100):
+def generate_wave(freq, duration, wave_type="sine"):
+    sample_rate = 44100
     t = np.linspace(0, duration, int(sample_rate * duration), False)
-    
-    # 1. Main Melody (Violin Section): 톱니파(Sawtooth)를 부드럽게 가공
-    # 톱니파는 현악기처럼 풍부한 배음을 가집니다.
-    violin = 0.5 * (2 * (freq * t - np.floor(freq * t + 0.5))) # Sawtooth
-    
-    # 2. Harmony (Viola/Cello): 3도 위 화음 + 1옥타브 아래 베이스
-    # 숫자가 하나 들어오면 자동으로 화음을 쌓습니다.
-    harmony_freq = freq * 1.25 # 장3도 (Major 3rd)
-    bass_freq = freq * 0.5     # 1옥타브 아래
-    
-    viola = 0.3 * np.sin(2 * np.pi * harmony_freq * t) # 부드러운 화음
-    cello = 0.4 * np.sin(2 * np.pi * bass_freq * t)    # 묵직한 베이스
-    
-    # 3. 합치기 (Ensemble)
-    wave = violin + viola + cello
-    
-    # 4. ADSR Envelope (부드러운 시작과 긴 여운)
-    # 현악기는 소리가 서서히 커졌다가(Attack) 천천히 사라짐(Release)
-    total_len = len(t)
-    attack_len = int(total_len * 0.3) # 30% 동안 커짐
-    sustain_len = int(total_len * 0.4)
-    release_len = total_len - attack_len - sustain_len
-    
-    attack = np.linspace(0, 1, attack_len)
-    sustain = np.linspace(1, 0.8, sustain_len)
-    release = np.linspace(0.8, 0, release_len)
-    
-    envelope = np.concatenate([attack, sustain, release])
-    
-    # 길이 오차 보정
-    if len(envelope) < total_len:
-         envelope = np.pad(envelope, (0, total_len - len(envelope)), 'constant')
-    elif len(envelope) > total_len:
-         envelope = envelope[:total_len]
+    if wave_type == "sine":
+        return np.sin(2 * np.pi * freq * t)
+    elif wave_type == "saw": # 리드 멜로디용 (날카로움)
+        return 0.5 * (2 * (freq * t - np.floor(freq * t + 0.5)))
+    elif wave_type == "pad": # 화음용 (부드럽고 넓음)
+        return np.sin(2 * np.pi * freq * t) + 0.5 * np.sin(2 * np.pi * freq * 1.01 * t)
 
-    return wave * envelope
+def apply_envelope(wave, duration, attack_ratio=0.1, release_ratio=0.4):
+    total_len = len(wave)
+    attack = int(total_len * attack_ratio)
+    release = int(total_len * release_ratio)
+    sustain = total_len - attack - release
+    
+    env = np.concatenate([
+        np.linspace(0, 1, attack),
+        np.full(sustain, 1.0),
+        np.linspace(1, 0, release)
+    ])
+    # 길이 보정
+    if len(env) < total_len: env = np.pad(env, (0, total_len - len(env)), 'constant')
+    else: env = env[:total_len]
+    return wave * env
 
-def apply_reverb(audio_data, delay_ms=300, decay=0.5, sample_rate=44100):
-    # [Reverb Effect] 공연장의 울림 효과 추가
-    delay_samples = int(sample_rate * (delay_ms / 1000))
-    reverb_signal = np.zeros(len(audio_data) + delay_samples)
-    reverb_signal[:len(audio_data)] += audio_data
-    # 원본 소리의 50% 크기로 뒤에 딜레이된 소리를 더함
-    reverb_signal[delay_samples:] += audio_data * decay 
-    return reverb_signal
+def apply_chorus(wave):
+    # [Chorus Effect] 천상의 목소리처럼 풍성하게 만듦
+    # 미세하게 피치가 다른 파형을 여러 개 겹침
+    chorus1 = np.interp(np.arange(0, len(wave), 0.995), np.arange(0, len(wave)), wave)
+    chorus2 = np.interp(np.arange(0, len(wave), 1.005), np.arange(0, len(wave)), wave)
+    
+    # 길이 맞추기
+    min_len = min(len(wave), len(chorus1), len(chorus2))
+    return wave[:min_len] + 0.5 * chorus1[:min_len] + 0.5 * chorus2[:min_len]
 
-def numbers_to_symphony(number_str, bpm):
-    # C Major Scale (Grand) - 웅장함을 위해 음역대를 넓게 잡음
-    scale = {
-        '1': 261.63, '2': 293.66, '3': 329.63, '4': 349.23,
-        '5': 392.00, '6': 440.00, '7': 493.88, '8': 523.25, 
-        '9': 587.33, '0': 0
+def generate_melody_phrase(digit, bpm):
+    # C Major Scale Frequencies
+    C4, D4, E4, F4, G4, A4, B4 = 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88
+    C5, D5, E5 = 523.25, 587.33, 659.25
+    
+    quarter_note = 60.0 / bpm
+    eighth_note = quarter_note / 2
+    
+    # [핵심] 숫자별 멜로디 프레이즈 및 리듬 정의
+    # (음표 리스트, 길이 리스트, 베이스 음, 코드 음)
+    phrases = {
+        '1': ([C4, D4, E4, C4], [eighth_note]*4, C4/2, [C4, E4, G4]), # 도레미도
+        '2': ([D4, E4, F4, D4], [eighth_note]*4, D4/2, [D4, F4, A4]),
+        '3': ([E4, G4, E4], [quarter_note, eighth_note, eighth_note], E4/2, [E4, G4, B4]), # 미~ 솔미
+        '4': ([F4, A4, C5], [quarter_note]*3, F4/2, [F4, A4, C5]), # 파 라 도
+        '5': ([G4, F4, E4, D4], [eighth_note]*4, G4/2, [G4, B4, D5]), # 솔파미레
+        '6': ([A4, C5, E5], [quarter_note, quarter_note, quarter_note*2], A4/2, [A4, C5, E5]), # 라 도 미~
+        '7': ([B4, A4, G4], [quarter_note, eighth_note, eighth_note], G4/2, [G4, B4, D5]), # 시 라 솔
+        '8': ([C5, G4, E4, C4], [eighth_note]*4, C4/2, [C4, E4, G4]), # 높은도 솔 미 도
+        '9': ([D5, C5, B4, A4, G4], [eighth_note]*5, G4/2, [G4, B4, D5]),
+        '0': ([], [quarter_note*2], 0, []) # 쉼표
     }
     
-    melody = []
-    base_duration = 60.0 / bpm
-    
-    for char in number_str:
-        if char in scale:
-            freq = scale[char]
-            
-            # 리듬 변화: 0은 쉼표, 그 외에는 웅장하게
-            if freq == 0:
-                tone = np.zeros(int(44100 * base_duration))
-            else:
-                tone = generate_orchestra_note(freq, base_duration * 1.5) # 음을 조금 더 길게(Legato)
-            
-            melody.append(tone)
-            
-    if not melody: return None
-    
-    # 전체 연결 후 리버브(울림) 적용
-    full_track = np.concatenate(melody)
-    full_track_with_reverb = apply_reverb(full_track)
-    
-    # 볼륨 정규화 (소리 깨짐 방지)
-    max_val = np.max(np.abs(full_track_with_reverb))
-    if max_val > 0:
-        full_track_with_reverb = full_track_with_reverb / max_val * 0.9
+    if digit not in phrases or digit == '0':
+        return np.zeros(int(44100 * quarter_note * 2))
         
-    return full_track_with_reverb
+    notes, durations, bass_freq, chord_freqs = phrases[digit]
+    total_duration = sum(durations)
+    
+    # 1. Lead Melody (선명한 멜로디)
+    melody_wave = np.array([])
+    for freq, dur in zip(notes, durations):
+        tone = generate_wave(freq, dur, "saw")
+        tone = apply_envelope(tone, dur, 0.05, 0.2)
+        melody_wave = np.concatenate([melody_wave, tone])
+        
+    # 2. Harmony Pad (배경 화음 + 코러스 효과)
+    pad_wave = np.zeros(len(melody_wave))
+    for freq in chord_freqs:
+        tone = generate_wave(freq, total_duration, "pad")
+        pad_wave += tone
+    pad_wave = apply_envelope(pad_wave, total_duration, 0.3, 0.5) # 부드럽게 시작
+    pad_wave = apply_chorus(pad_wave) * 0.4 # 코러스 적용 및 볼륨 조절
+    
+    # 3. Bass (묵직한 저음)
+    bass_wave = generate_wave(bass_freq, total_duration, "sine")
+    bass_wave = apply_envelope(bass_wave, total_duration, 0.1, 0.3) * 0.6
+    
+    # 믹싱
+    final_mix = melody_wave + pad_wave + bass_wave
+    return final_mix / np.max(np.abs(final_mix)) * 0.9 # 볼륨 정규화
+
+def numbers_to_epic_music(number_str, bpm):
+    full_track = []
+    for char in number_str:
+        if char.isdigit():
+            phrase = generate_melody_phrase(char, bpm)
+            full_track.append(phrase)
+            
+    if not full_track: return None
+    return np.concatenate(full_track)
 
 # --- 4. 메인 UI ---
 
-st.markdown('<div class="grand-title">MATH SYMPHONY</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">수학적 연산으로 지휘하는 웅장한 오케스트라</div>', unsafe_allow_html=True)
+st.markdown('<div class="neo-title">NEO-SYMPHONY</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">수학적 배열이 만들어내는 웅장한 전자 음악의 세계</div>', unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 1.4], gap="large")
+col1, col2 = st.columns([1, 1.3], gap="large")
 
 with col1:
-    st.markdown('<div class="royal-card">', unsafe_allow_html=True)
-    st.markdown("### 🎼 악보 (Score)")
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("### 💿 Source Data (데이터 소스)")
     
-    # 탭 선택 시 이슈 해결된 버전
-    tab_math, tab_custom = st.tabs(["✨ 위대한 상수", "🎻 나만의 주제곡"])
+    # 탭 디자인 CSS 적용 확인
+    tab_math, tab_custom = st.tabs(["🌌 Cosmic Numbers", "🖊️ Custom Input"])
     
     with tab_math:
-        choice = st.radio("연주할 테마를 선택하세요", 
-                         ["Symphony No.3.14 (Pi)", "Concerto No.2.71 (Euler)", "Sonata No.1.61 (Golden Ratio)"])
-        
-        if "Pi" in choice: nums = "314159265358979323846264338327950288419716939937510"
-        elif "Euler" in choice: nums = "271828182845904523536028747135266249775724709369995"
-        else: nums = "161803398874989484820458683436563811772030917980576"
-            
+        math_choice = st.radio("연주할 테마 선택", 
+                              ["Track π (Pi) - 영원한 순환", "Track φ (Golden) - 완벽한 비율", "Track e (Euler) - 성장의 궤적"])
+        if "π" in math_choice: nums = "314159265358979323846264338327950288419716939937510"
+        elif "φ" in math_choice: nums = "161803398874989484820458683436563811772030917980576"
+        else: nums = "271828182845904523536028747135266249775724709369995"
+
     with tab_custom:
-        user_in = st.text_input("숫자를 입력하세요", placeholder="19950815")
-        if user_in: nums = ''.join(filter(str.isdigit, user_in))
-        elif 'nums' not in locals(): nums = "12345678"
-    
-    st.markdown("---")
-    bpm = st.slider("지휘 속도 (Tempo)", 60, 140, 90) # 오케스트라는 좀 느려야 웅장함
+        user_input = st.text_input("나만의 숫자열 입력", placeholder="예: 20240101")
+        if user_input: nums = ''.join(filter(str.isdigit, user_input))
+        elif 'nums' not in locals(): nums = "314159" # 기본값
+
+    st.write("")
+    bpm = st.slider("🎛️ BPM (Tempo)", 60, 160, 100)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # 팁 박스
     st.info("""
-    🎻 **오케스트라 사운드의 비밀**
-    이 프로그램은 단순히 '삐-' 소리를 내지 않습니다. 
-    하나의 숫자를 입력하면 **'바이올린(주선율) + 비올라(화음) + 첼로(베이스)'** 파형을 
-    수학적으로 동시에 생성하여 합칩니다.
+    💡 **사운드 엔진 업그레이드**
+    단순한 화음이 아닙니다. 숫자 하나가 **리드 멜로디 + 화음 패드(코러스 효과) + 베이스**로 구성된
+    하나의 **짧은 음악 프레이즈(Phrase)**를 재생합니다. 훨씬 다이나믹하고 웅장합니다.
     """)
 
 with col2:
-    st.markdown('<div class="royal-card" style="border-color:#FFD700;">', unsafe_allow_html=True)
-    st.markdown("### 🎹 시각화 (Visualization)")
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("### 🎚️ Visualizer & Playback")
     
     if nums:
-        # Altair 차트 (골드 & 네이비 테마)
-        digits = [int(d) for d in nums[:25] if d != '0']
-        df = pd.DataFrame({'Time': range(len(digits)), 'Pitch': digits, 'Volume': [d*10+50 for d in digits]})
-
-        chart = alt.Chart(df).mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
-            x=alt.X('Time', axis=None),
-            y=alt.Y('Pitch', axis=None, scale=alt.Scale(domain=[0, 12])),
-            color=alt.value("#1a237e"), # 네이비색 막대
-            opacity=alt.value(0.8),
-            tooltip=['Pitch']
-        ).properties(height=250)
+        # 네온 스타일 차트
+        digits = [int(d) for d in nums[:20] if d != '0']
+        chart_data = pd.DataFrame({'Time': range(len(digits)), 'Note': digits})
         
-        # 선율 라인 추가 (금색 선)
-        line = alt.Chart(df).mark_line(color='#FFD700', strokeWidth=3).encode(
-            x='Time', y='Pitch'
-        )
-
-        st.altair_chart(chart + line, use_container_width=True)
-        st.caption(f"🎶 Opus Sequence: {nums[:15]}...")
+        chart = alt.Chart(chart_data).mark_line(point=True).encode(
+            x=alt.X('Time', axis=None),
+            y=alt.Y('Note', axis=None, scale=alt.Scale(domain=[0, 10])),
+            color=alt.value("#00f260"), # 네온 그린 색상
+            tooltip=['Note']
+        ).properties(height=250).configure_view(strokeWidth=0)
+        
+        st.altair_chart(chart, use_container_width=True)
+        st.caption(f"Sequence: {nums[:15]}...")
         
         st.write("")
         
-        if st.button("🎵 오케스트라 연주 시작 (Maestro Start)", use_container_width=True):
-            with st.spinner("단원들이 튜닝 중입니다... 🎻"):
-                audio_data = numbers_to_symphony(nums, bpm)
+        if st.button("▶️ GENERATE EPIC TRACK", use_container_width=True):
+            with st.spinner("합성 엔진 가동 중... 사운드 레이어링... 🎧"):
+                audio_data = numbers_to_epic_music(nums, bpm)
                 virtual_file = io.BytesIO()
                 write(virtual_file, 44100, (audio_data * 32767).astype(np.int16))
+                
                 st.audio(virtual_file, format='audio/wav')
-                st.success("연주가 시작되었습니다.")
+                st.success("트랙 생성이 완료되었습니다. 볼륨을 높이세요!")
     else:
-        st.warning("악보(숫자)를 준비해주세요.")
+        st.warning("숫자를 입력해주세요.")
+        
     st.markdown('</div>', unsafe_allow_html=True)
